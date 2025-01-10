@@ -4,22 +4,12 @@ import { io, Socket } from "socket.io-client";
 
 const isDev = true;
 const WS_URL = isDev ? import.meta.env.VITE_WS_URL_DEV : import.meta.env.VITE_WS_URL;
+const socket: Socket = io(WS_URL, { transports: ["websocket"] });
 
 function App() {
-  // const socket = io(WS_URL, { transports: ["websocket"] });
-  const [socket, setSocket] = useState<Socket>();
+  const [room, setRoom] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [receivedMessages, setReceivedMessages] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!socket) {
-      // maintain only 1 websocket per client session
-      setSocket(io(WS_URL, { transports: ["websocket"] }));
-    }
-    return () => {
-      socket?.disconnect();
-    };
-  }, [socket]);
 
   useEffect(() => {
     if (!socket) return;
@@ -29,22 +19,31 @@ function App() {
     });
 
     return () => {
-      socket.off("client_incoming");
+      socket.off("client_incoming"); // clean up listeners
     };
   }, [socket]);
 
   const sendMessage = () => {
     if (!socket) return;
-    socket.emit("client_outgoing", message);
+    socket.emit("client_outgoing", { message, room });
 
     return () => {
       socket.off("client_outgoing");
     };
   };
 
+  const joinRoom = () => {
+    if (room) {
+      socket.emit("join_room", room);
+    }
+  };
+
   return (
     <div>
-      <input type="text" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)} />
+      <input type="text" placeholder="Room" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoom(e.target.value)} />
+      <button onClick={joinRoom}>Join</button>
+      <hr />
+      <input type="text" placeholder="Message" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)} />
       <button onClick={sendMessage}>Send</button>
       <h3>Messages:</h3>
       <>
