@@ -7,7 +7,7 @@ import websocketConnect from "./config/websocket.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import userRoutes from "./routes/userRoutes.js";
 
-const PORT = 3000;
+const PORT = 5000;
 const app = express();
 const server = createServer(app);
 
