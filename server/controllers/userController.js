@@ -49,12 +49,37 @@ const createUser = async (req, res, next) => {
       password: password, // TODO this will need to be encrypted with salt()
     };
 
-    const user = await User.create(newUser);
-    return res.status(200).json({ error: false, data: user });
+    await User.create(newUser);
+    return res.status(200).json({ error: false, data: { name: newUser.name, email: newUser.email } });
   } catch (error) {
     console.log("createUser error: ", error);
     next(error);
   }
 };
 
-export { getUser, createUser };
+const registerUser = async (req, res, next) => {
+  // try {
+  //   const {name, email, password} = req.body;
+  // } catch (error) {
+  // }
+  // TODO pending
+};
+
+const loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User with this email doesn't exist." });
+    }
+    if (password !== user.password) {
+      return res.status(400).json({ error: true, message: "Incorrect password." });
+    }
+    return res.status(200).json({ error: false, data: { name: user.name, email: user.email } });
+  } catch (error) {
+    console.log("loginUser error: ", error);
+    next(error);
+  }
+};
+
+export { getUser, createUser, loginUser };
