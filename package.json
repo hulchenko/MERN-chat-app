@@ -1,0 +1,25 @@
+{
+  "name": "react-chat-app",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/hulchenko/MERN-chat-app#readme",
+  "bugs": {
+    "url": "https://github.com/hulchenko/MERN-chat-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hulchenko/MERN-chat-app.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "client": "npm run dev --prefix client",
+    "server": "npm run dev --prefix server",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
