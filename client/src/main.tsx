@@ -6,10 +6,13 @@ import { App } from "./App.tsx";
 import { NotFound } from "./pages/NotFound.tsx";
 import { Room } from "./pages/Room.tsx";
 import { Home } from "./pages/Home.tsx";
+import { Login } from "./pages/Login.tsx";
+import { SessionProvider } from "./context/session.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
+      <Route path="/login" element={<Login />} />
       <Route index element={<Home />} />
       <Route path="/:room" element={<Room />} />
       <Route path="*" element={<NotFound />} />
@@ -19,6 +22,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <SessionProvider>
+      <RouterProvider router={router} />
+    </SessionProvider>
   </StrictMode>
 );
