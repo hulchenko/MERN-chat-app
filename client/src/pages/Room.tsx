@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { socket } from "../socket";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSession } from "../context/SessionProvider";
+import socket from "../socket";
 
 interface Message {
-  user: string;
+  username: string;
   message: string;
 }
 
 export const Room = () => {
-  // const [searchParams] = useSearchParams();
   const { room } = useParams();
-  // const user = searchParams.get("user") || "Guest";
   const { session } = useSession();
   const navigate = useNavigate();
 
@@ -21,7 +19,7 @@ export const Room = () => {
   const sendMessage = () => {
     if (!socket) return;
     socket.emit("client_outgoing", { message, room });
-    const localMessage: Message = { user: "You", message };
+    const localMessage: Message = { username: "You", message };
     setConversation((prev) => [...prev, localMessage]); // local
     return () => {
       socket.off("client_outgoing");
@@ -31,8 +29,8 @@ export const Room = () => {
   const leaveRoom = () => {
     // socket.disconnect();
     if (session) {
-      const { name, email } = session;
-      socket.emit("leave_room", { user: { name, email }, room });
+      const { username } = session;
+      socket.emit("leave_room", { username, room });
       navigate("/");
     }
   };
@@ -40,9 +38,9 @@ export const Room = () => {
   useEffect(() => {
     // join room on page render
     if (session) {
-      const { name, email } = session;
-      socket.emit("join_room", { user: { name, email }, room });
-      setConversation((prev) => [...prev, { user: "You", message: "connected." }]); // local
+      const { username } = session;
+      socket.emit("join_room", { username, room });
+      setConversation((prev) => [...prev, { username: "You", message: "connected." }]); // local
       return () => {
         socket.off("join_room");
       };
@@ -56,12 +54,12 @@ export const Room = () => {
       setConversation((prev) => [...prev, incomingMessage]);
     });
 
-    socket.on("user_connect", (user) => {
-      setConversation((prev) => [...prev, { user, message: "connected." }]);
+    socket.on("user_connect", (username) => {
+      setConversation((prev) => [...prev, { username, message: "connected." }]);
     });
 
-    socket.on("user_disconnect", (user) => {
-      setConversation((prev) => [...prev, { user, message: "disconnected." }]);
+    socket.on("user_disconnect", (username) => {
+      setConversation((prev) => [...prev, { username, message: "disconnected." }]);
     });
 
     return () => {
@@ -80,7 +78,7 @@ export const Room = () => {
       <ul>
         {conversation.map((msg, idx) => (
           <p key={idx}>
-            {msg.user}: {msg.message}
+            {msg.username}: {msg.message}
           </p>
         ))}
       </ul>

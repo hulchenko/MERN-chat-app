@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useSession, Session } from "../context/SessionProvider";
+import { useSession } from "../context/SessionProvider";
 import { useNavigate } from "react-router-dom";
-import { socket } from "../socket";
+import socket from "../socket";
 
 interface Response {
   error: boolean;
-  data?: Session;
+  username?: string;
   message?: string;
 }
 
 export const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const { setSession } = useSession();
@@ -23,7 +23,7 @@ export const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -39,18 +39,19 @@ export const Login = () => {
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error, message = "", data = { name: "", email: "" } } = await authenticate();
+    const { error, message = "", username = "" } = await authenticate();
     if (error) {
       return setAuthError(message);
     }
-    setSession(data);
-    socket.emit("login", data);
+    setSession({ username });
+    socket.auth = { test: "hi" };
+    socket.connect();
     navigate("/");
   };
 
   return (
     <form onSubmit={submitHandler} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <input type="email" placeholder="email" autoComplete="on" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} />
+      <input type="text" placeholder="username" autoComplete="on" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)} />
       <input type="password" placeholder="password" autoComplete="on" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} />
       <button type="submit">Submit</button>
       {authError && <p style={{ color: "red", fontSize: "small" }}>{authError}</p>}

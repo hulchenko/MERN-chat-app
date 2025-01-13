@@ -12,13 +12,13 @@ import User from "../models/User.js";
 
 const getUser = async (req, res, next) => {
   try {
-    const { email } = req.query;
+    const { username } = req.query; // TODO update to use username(unique)/password instead
 
-    if (!email) {
-      return res.status(400).json({ error: true, message: "Email is required to get user." });
+    if (!username) {
+      return res.status(400).json({ error: true, message: "Username is required to get user." });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ username });
 
     if (!user) {
       return res.status(404).json({ error: true, message: "User is not found." });
@@ -31,51 +31,32 @@ const getUser = async (req, res, next) => {
   }
 };
 
-const createUser = async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: true, message: "All fields are required: name, email, password." });
-    }
-
-    const isExist = await User.findOne({ email });
-    if (isExist) {
-      return res.status(400).json({ error: true, message: "User with this email already exists." });
-    }
-
-    const newUser = {
-      name,
-      email,
-      password: password, // TODO this will need to be encrypted with salt()
-    };
-
-    await User.create(newUser);
-    return res.status(200).json({ error: false, data: { name: newUser.name, email: newUser.email } });
-  } catch (error) {
-    console.log("createUser error: ", error);
-    next(error);
+const createUser = async (username, password) => {
+  if (!username || !password) {
+    throw Error("All fields are required: username, password.");
   }
-};
 
-const registerUser = async (req, res, next) => {
-  // try {
-  //   const {name, email, password} = req.body;
-  // } catch (error) {
-  // }
-  // TODO pending
+  const newUser = {
+    username,
+    password: password, // TODO this will need to be encrypted with salt()
+  };
+
+  const user = await User.create(newUser);
+  return user;
 };
 
 const loginUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
     if (!user) {
-      return res.status(404).json({ error: true, message: "User with this email doesn't exist." });
+      const user = await createUser(username, password);
+      return res.status(201).json({ error: false, username: user.username });
     }
     if (password !== user.password) {
       return res.status(400).json({ error: true, message: "Incorrect password." });
     }
-    return res.status(200).json({ error: false, data: { name: user.name, email: user.email } });
+    return res.status(200).json({ error: false, username: user.username });
   } catch (error) {
     console.log("loginUser error: ", error);
     next(error);
