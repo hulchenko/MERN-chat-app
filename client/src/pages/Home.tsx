@@ -11,10 +11,7 @@ export const Home = () => {
 
   const joinRoom = () => {
     if (room && user) {
-      navigate({
-        pathname: `/${room}`,
-        search: `?user=${user}`,
-      });
+      navigate(`/${room}`);
     }
   };
 

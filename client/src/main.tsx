@@ -7,7 +7,7 @@ import { NotFound } from "./pages/NotFound.tsx";
 import { Room } from "./pages/Room.tsx";
 import { Home } from "./pages/Home.tsx";
 import { Login } from "./pages/Login.tsx";
-import { SessionProvider } from "./context/session.tsx";
+import { SessionProvider } from "./context/SessionProvider.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -19,6 +19,9 @@ const router = createBrowserRouter(
     </Route>
   )
 );
+
+// TODO <BrowserRouter></BrowserRouter>
+// TODO simple routes
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

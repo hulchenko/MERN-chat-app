@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { socket } from "../socket";
+import { useSession } from "../context/SessionProvider";
 
 interface Message {
   user: string;
@@ -8,9 +9,10 @@ interface Message {
 }
 
 export const Room = () => {
-  const [searchParams] = useSearchParams();
+  // const [searchParams] = useSearchParams();
   const { room } = useParams();
-  const user = searchParams.get("user") || "Guest";
+  // const user = searchParams.get("user") || "Guest";
+  const { session } = useSession();
   const navigate = useNavigate();
 
   const [message, setMessage] = useState<string>("");
@@ -27,18 +29,25 @@ export const Room = () => {
   };
 
   const leaveRoom = () => {
-    socket.disconnect();
-    navigate("/");
+    // socket.disconnect();
+    if (session) {
+      const { name, email } = session;
+      socket.emit("leave_room", { user: { name, email }, room });
+      navigate("/");
+    }
   };
 
   useEffect(() => {
     // join room on page render
-    socket.emit("join_room", { user, room });
-    setConversation((prev) => [...prev, { user: "You", message: "connected." }]); // local
-    return () => {
-      socket.off("join_room");
-    };
-  }, []);
+    if (session) {
+      const { name, email } = session;
+      socket.emit("join_room", { user: { name, email }, room });
+      setConversation((prev) => [...prev, { user: "You", message: "connected." }]); // local
+      return () => {
+        socket.off("join_room");
+      };
+    }
+  }, [session, socket]);
 
   useEffect(() => {
     if (!socket) return;

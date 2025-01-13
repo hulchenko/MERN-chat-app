@@ -5,37 +5,44 @@ const websocketConnect = (server) => {
 
   const users = {};
 
+  // TODO fetch user here and assign user props to socket
+  // TODO add unauthorized/disconnect handler
+
   io.on("connection", (socket) => {
     console.log("Websocket connected. ID: ", socket.id);
 
+    socket.on("login", (user) => {
+      const { name, email } = user;
+      users[socket.id] = { name, email }; // TODO add persistent socket session
+    });
+
     // join room
     socket.on("join_room", ({ user, room }) => {
-      console.log("BEFORE: ", users);
-      if (users[socket.id]) {
-        const { rooms } = users[socket.id];
-        if (!rooms.includes(room)) {
-          const newArr = [...rooms, room];
-          users[socket.id] = { ...users[socket.id], rooms: newArr };
-        }
-      } else {
-        users[socket.id] = { user, rooms: [room] };
+      const { name, email } = user;
+      console.log(name + " joined " + room);
+      if (!users[socket.id]) {
+        users[socket.id] = { name, email }; // TODO remove after persistent socket session
       }
       socket.join(room);
-      socket.to(room).emit("user_connect", user);
+      socket.to(room).emit("user_connect", name);
+    });
 
-      console.log("AFTER: ", users);
+    socket.on("leave_room", ({ user, room }) => {
+      if (!users[socket.id]) return;
+      const { name, email } = user;
+      socket.leave(room);
+      socket.to(room).emit("user_disconnect", name);
     });
 
     // send/receive messages
     socket.on("client_outgoing", (data) => {
       if (!users[socket.id]) return;
-      console.log("CLIENT MESSAGE ", data);
       const { room, message } = data;
-      const { user } = users[socket.id];
-      if (!user || !room || !message) return;
+      const { name } = users[socket.id];
+      if (!name || !room || !message) return;
 
       // socket.broadcast.emit("client_incoming", incomingMessage); // emit to everyone in the channel
-      socket.to(room).emit("client_incoming", { user, message }); // emit to the specific room only
+      socket.to(room).emit("client_incoming", { user: name, message }); // emit to the specific room only
     });
 
     socket.on("private_message", (data) => {
@@ -44,22 +51,22 @@ const websocketConnect = (server) => {
     });
 
     socket.on("disconnecting", () => {
-      if (!users[socket.id]) return;
+      if (!users[socket.id]) return; // TODO error handling
 
-      const { user } = users[socket.id];
+      const { name } = users[socket.id];
       for (const room of socket.rooms) {
         if (room !== socket.id) {
           // socket.id = default "room" assigned to upon socket creation
-          socket.to(room).emit("user_disconnect", user);
-          console.log(user + " disconnected.");
+          socket.to(room).emit("user_disconnect", name);
+          console.log(name + " disconnected.");
           // TODO handle individual rooms disconnect
         }
       }
-      delete users[socket.id];
     });
 
     socket.on("disconnect", () => {
       // socket no longer exists, final clean up if any
+      delete users[socket.id];
     });
   });
 };

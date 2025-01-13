@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSession, Session } from "../context/SessionProvider";
 import { useNavigate } from "react-router-dom";
+import { socket } from "../socket";
 
 interface Response {
   error: boolean;
@@ -43,6 +44,7 @@ export const Login = () => {
       return setAuthError(message);
     }
     setSession(data);
+    socket.emit("login", data);
     navigate("/");
   };
 
