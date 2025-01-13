@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { socket } from "../socket";
 
 interface Message {
@@ -11,6 +11,7 @@ export const Room = () => {
   const [searchParams] = useSearchParams();
   const { room } = useParams();
   const user = searchParams.get("user") || "Guest";
+  const navigate = useNavigate();
 
   const [message, setMessage] = useState<string>("");
   const [conversation, setConversation] = useState<Message[]>([]);
@@ -23,6 +24,11 @@ export const Room = () => {
     return () => {
       socket.off("client_outgoing");
     };
+  };
+
+  const leaveRoom = () => {
+    socket.disconnect();
+    navigate("/");
   };
 
   useEffect(() => {
@@ -69,6 +75,7 @@ export const Room = () => {
           </p>
         ))}
       </ul>
+      <button onClick={leaveRoom}>Leave room</button>
     </>
   );
 };
