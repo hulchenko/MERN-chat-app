@@ -44,7 +44,7 @@ export const Login = () => {
       return setAuthError(message);
     }
     setSession({ username });
-    socket.auth = { test: "hi" };
+    socket.auth = { username };
     socket.connect();
     navigate("/");
   };

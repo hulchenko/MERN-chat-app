@@ -3,70 +3,32 @@ import { Server } from "socket.io";
 const websocketConnect = (server) => {
   const io = new Server(server);
 
-  const users = {};
-
-  // TODO fetch user here and assign user props to socket
-  // TODO add unauthorized/disconnect handler
+  io.use((socket, next) => {
+    const username = socket.handshake.auth.username;
+    if (!username) {
+      return next(new Error("Username is missing.")); // this is caught by "connect_error" in client-side
+    }
+    socket.username = username;
+    next();
+  });
 
   io.on("connection", (socket) => {
     console.log("Websocket connected. ID: ", socket.id);
+    const connections = io.of("/").sockets;
+    const users = [];
+    console.log("Users online: ", connections.size);
 
-    socket.on("login", (user) => {
-      const { name, email } = user;
-      users[socket.id] = { name, email }; // TODO add persistent socket session
-    });
+    for (const [socketId, socketObj] of connections) {
+      users.push({ id: socketId, username: socketObj.username });
+    }
 
-    // join room
-    socket.on("join_room", ({ user, room }) => {
-      const { name, email } = user;
-      console.log(name + " joined " + room);
-      if (!users[socket.id]) {
-        users[socket.id] = { name, email }; // TODO remove after persistent socket session
-      }
-      socket.join(room);
-      socket.to(room).emit("user_connect", name);
-    });
+    socket.emit("initial_users", users);
 
-    socket.on("leave_room", ({ user, room }) => {
-      if (!users[socket.id]) return;
-      const { name, email } = user;
-      socket.leave(room);
-      socket.to(room).emit("user_disconnect", name);
-    });
+    socket.broadcast.emit("new_user", { id: socket.id, username: socket.username }); // announce to all connections
 
-    // send/receive messages
-    socket.on("client_outgoing", (data) => {
-      if (!users[socket.id]) return;
-      const { room, message } = data;
-      const { name } = users[socket.id];
-      if (!name || !room || !message) return;
-
-      // socket.broadcast.emit("client_incoming", incomingMessage); // emit to everyone in the channel
-      socket.to(room).emit("client_incoming", { user: name, message }); // emit to the specific room only
-    });
-
-    socket.on("private_message", (data) => {
-      if (!users[socket.id]) return;
-      // TODO users will automatically join their rooms (user id unique) on connection. This allows private messaging between 2 users: (targetSocketId + message)
-    });
-
-    socket.on("disconnecting", () => {
-      if (!users[socket.id]) return; // TODO error handling
-
-      const { name } = users[socket.id];
-      for (const room of socket.rooms) {
-        if (room !== socket.id) {
-          // socket.id = default "room" assigned to upon socket creation
-          socket.to(room).emit("user_disconnect", name);
-          console.log(name + " disconnected.");
-          // TODO handle individual rooms disconnect
-        }
-      }
-    });
-
-    socket.on("disconnect", () => {
-      // socket no longer exists, final clean up if any
-      delete users[socket.id];
+    socket.onAny((event, ...args) => {
+      // listen to all events
+      console.log("SOCKET: ", event, args);
     });
   });
 };
