@@ -11,8 +11,6 @@ export const Home = () => {
   const { session } = useSession();
   const [username, setUsername] = useState<string>("");
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     if (session) {
       setUsername(session.username);
@@ -21,9 +19,6 @@ export const Home = () => {
 
   return (
     <div className="flex w-full">
-      <button className="absolute top-10 right-10 border border-red-400 p-6" onClick={() => navigate("/login")}>
-        Login
-      </button>
       <SelectedUserProvider>
         <ConversationProvider>
           <NavigationPanel username={username} />

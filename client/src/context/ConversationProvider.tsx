@@ -3,6 +3,7 @@ import { Message } from "../interface/Message";
 
 interface ConversationContext {
   conversation: ConversationMessage;
+  lastMessage: Message;
   addMessage: (from: string, to: string, content: string) => void;
 }
 
@@ -12,6 +13,7 @@ type ConversationMessage = {
 
 const ConversationContext = createContext<ConversationContext>({
   conversation: {},
+  lastMessage: { from: "", to: "", content: "", timestamp: 0 },
   addMessage: () => {},
 });
 
@@ -21,6 +23,7 @@ export const generateConversationKey = (user1: string, user2: string): string =>
 
 export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [conversation, setConversation] = useState<ConversationMessage>({});
+  const [lastMessage, setLastMessage] = useState<Message>({ from: "", to: "", content: "", timestamp: 0 });
 
   const addMessage = (from: string, to: string, content: string): void => {
     const key = generateConversationKey(from, to);
@@ -35,11 +38,12 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
         ],
       };
     });
+    setLastMessage({ from, to, content, timestamp });
   };
 
   useEffect(() => console.log("Conversation: ", conversation), [conversation]);
 
-  return <ConversationContext.Provider value={{ conversation, addMessage }}>{children}</ConversationContext.Provider>;
+  return <ConversationContext.Provider value={{ conversation, lastMessage, addMessage }}>{children}</ConversationContext.Provider>;
 };
 
 export const useConversation = () => useContext(ConversationContext);

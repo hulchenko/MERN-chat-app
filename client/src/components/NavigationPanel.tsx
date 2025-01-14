@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelectedUser } from "../context/SelectedUserProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
+import { useConversation } from "../context/ConversationProvider";
 
 const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
 
@@ -11,6 +12,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const [users, setUsers] = useState<User[]>([]);
 
   const { selectedUser, setSelectedUser } = useSelectedUser();
+  const { lastMessage } = useConversation();
 
   const navigate = useNavigate();
 
@@ -22,6 +24,24 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   const createRoom = (): void => {
     // TODO Mongo POST
+  };
+
+  const displayNotification = (sender: string): void => {
+    const usersArr = [...users];
+    const userIdx = usersArr.findIndex((user) => user.username === sender);
+    if (userIdx !== -1) {
+      usersArr[userIdx].newMessage = true;
+      setUsers(usersArr);
+    }
+  };
+
+  const removeNotification = (targetUser: User): void => {
+    const usersArr = [...users];
+    const userIdx = usersArr.findIndex((user) => user.username === targetUser.username);
+    if (userIdx !== -1) {
+      usersArr[userIdx].newMessage = false;
+      setUsers(usersArr);
+    }
   };
 
   useEffect(() => {
@@ -48,8 +68,17 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     };
   }, []);
 
+  useEffect(() => {
+    // display notification icon for new messages
+    const sender = lastMessage.from;
+    const targetUser = selectedUser?.username;
+    if (sender !== targetUser) {
+      displayNotification(sender);
+    }
+  }, [lastMessage]);
+
   return (
-    <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen">
+    <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen gap-2">
       <h3 className="my-10 text-3xl capitalize">Hi, {username}</h3>
       <div className="flex flex-col h-full justify-between">
         <div>
@@ -58,13 +87,16 @@ export const NavigationPanel = ({ username }: { username: string }) => {
             {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
             {users.map((user) => (
               <p
-                onClick={() => setSelectedUser(user)}
                 key={user.id}
+                onClick={() => {
+                  setSelectedUser(user), removeNotification(user);
+                }}
                 className={`p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
                   selectedUser?.username === user.username ? "bg-slate-700 text-white" : ""
                 }`}
               >
                 {user.username}
+                {user.newMessage && <span className="text-red-500 font-bold border border-red-300 ml-4">new</span>}
               </p>
             ))}
           </div>
@@ -83,7 +115,12 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         </div>
       </div>
       <input type="text" placeholder="Room name..." onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoom(e.target.value)} />
-      <button onClick={createRoom}>Create</button>
+      <button className="border border-slate-400 p-2" onClick={createRoom}>
+        Create
+      </button>
+      <button className="border border-red-400 p-2" onClick={() => navigate("/login")}>
+        Login
+      </button>
     </div>
   );
 };
