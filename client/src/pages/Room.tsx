@@ -13,7 +13,6 @@ export const Room = () => {
   const { session } = useSession();
   const navigate = useNavigate();
 
-  const [message, setMessage] = useState<string>("");
   const [conversation, setConversation] = useState<Message[]>([]);
 
   const sendMessage = () => {
@@ -72,7 +71,6 @@ export const Room = () => {
 
   return (
     <>
-      <input type="text" placeholder="Message" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)} />
       <button onClick={sendMessage}>Send</button>
       <h3>Messages:</h3>
       <ul>

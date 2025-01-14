@@ -4,6 +4,10 @@ import { useSession } from "../context/SessionProvider";
 import socket from "../socket";
 import { User } from "../interface/User";
 import { NavigationPanel } from "../components/NavigationPanel";
+import { ChatInput } from "../components/ChatInput";
+import { ChatContainer } from "../components/ChatContainer";
+import { SelectedUserProvider } from "../context/SelectedUserProvider";
+import { ConversationProvider } from "../context/ConversationProvider";
 
 export const Home = () => {
   const { session } = useSession();
@@ -43,11 +47,19 @@ export const Home = () => {
   }, [socket, users, session]);
 
   return (
-    <div>
+    <div className="flex w-full">
       <button className="absolute top-10 right-10 border border-red-400 p-6" onClick={() => navigate("/login")}>
         Login
       </button>
-      <NavigationPanel users={users} username={username} />
+      <SelectedUserProvider>
+        <ConversationProvider>
+          <NavigationPanel users={users} username={username} />
+          <div className="flex flex-col h-screen w-full">
+            <ChatContainer />
+            <ChatInput />
+          </div>
+        </ConversationProvider>
+      </SelectedUserProvider>
     </div>
   );
 };

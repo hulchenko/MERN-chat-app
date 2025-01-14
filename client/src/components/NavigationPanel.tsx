@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { User } from "../interface/User";
 import { useNavigate } from "react-router-dom";
+import socket from "../socket";
+import { useSelectedUser } from "../context/SelectedUserProvider";
 
-const sampleRooms = ["room1", "room2", "room3", "room4"];
+const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
 
 export const NavigationPanel = ({ users, username }: { users: User[]; username: string }) => {
   const [room, setRoom] = useState<string>("");
+  const { setSelectedUser } = useSelectedUser();
 
   const navigate = useNavigate();
 
-  const joinRoom = () => {
+  const joinRoom = (): void => {
     if (room && username) {
       navigate(`/${room}`);
     }
   };
 
-  const createRoom = () => {
+  const createRoom = (): void => {
     // TODO Mongo POST
   };
 
@@ -27,15 +30,19 @@ export const NavigationPanel = ({ users, username }: { users: User[]; username: 
           <h1>Online users</h1>
           <div className="p-4 bg-slate-200 rounded">
             {users.map((user) => (
-              <p className="p-2 my-2 border border-slate-700 rounded">{user.username}</p>
+              <p onClick={() => setSelectedUser(user)} key={user.id} className="p-2 my-2 border border-slate-700 rounded">
+                {user.username}
+              </p>
             ))}
           </div>
         </div>
         <div>
           <h1>Rooms</h1>
           <div className="p-4 bg-slate-200 rounded">
-            {sampleRooms.map((room) => (
-              <p className="p-2 my-2 border border-slate-700 rounded">{room}</p>
+            {sampleRooms.map((room, idx) => (
+              <p key={idx} className="p-2 my-2 border border-slate-700 rounded">
+                {room}
+              </p>
             ))}
             {/* TODO will come from DB */}
             {/* <button onClick={joinRoom}>Join</button> */}
