@@ -2,7 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 import { User } from "../interface/User";
 
 interface SelectedUserContext {
-  selectedUser: User;
+  selectedUser: User | null;
   setSelectedUser: (user: User) => void;
 }
 
@@ -12,9 +12,9 @@ const SelectedUser = createContext<SelectedUserContext>({
 });
 
 export const SelectedUserProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedUser, setSelectedUser] = useState<User | null>({ id: "", username: "" });
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  useEffect(() => console.log("SELECTED USER: ", selectedUser), [selectedUser]);
+  // useEffect(() => console.log("SELECTED USER: ", selectedUser), [selectedUser]);
 
   return <SelectedUser.Provider value={{ selectedUser, setSelectedUser }}>{children}</SelectedUser.Provider>;
 };

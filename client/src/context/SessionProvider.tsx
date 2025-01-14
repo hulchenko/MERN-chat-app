@@ -1,9 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-
-export interface Session {
-  username: string;
-  // token: string
-}
+import { Session } from "../interface/Session";
 
 interface SessionContext {
   session: Session | null;
@@ -35,7 +31,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     storeLocally();
-    console.log("SESSION: ", session);
+    // console.log("SESSION: ", session);
   }, [session]);
 
   return <SessionContext.Provider value={{ session, setSession }}>{children}</SessionContext.Provider>;
