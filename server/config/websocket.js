@@ -35,7 +35,8 @@ const websocketConnect = (server) => {
       io.to(recipient.id).emit("private_message", {
         // emit message to the private room(user id)
         content,
-        from: socket.id, //TODO is this accurate?
+        from: socket.username,
+        to: recipient.username,
       });
     });
 

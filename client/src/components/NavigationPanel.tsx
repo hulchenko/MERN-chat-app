@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { User } from "../interface/User";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "../socket";
 import { useSelectedUser } from "../context/SelectedUserProvider";
+import { User } from "../interface/User";
+import socket from "../socket";
 
 const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
 
-export const NavigationPanel = ({ users, username }: { users: User[]; username: string }) => {
+export const NavigationPanel = ({ username }: { username: string }) => {
   const [room, setRoom] = useState<string>("");
-  const { setSelectedUser } = useSelectedUser();
+  const [users, setUsers] = useState<User[]>([]);
+
+  const { selectedUser, setSelectedUser } = useSelectedUser();
 
   const navigate = useNavigate();
 
@@ -22,6 +24,30 @@ export const NavigationPanel = ({ users, username }: { users: User[]; username: 
     // TODO Mongo POST
   };
 
+  useEffect(() => {
+    socket.on("initial_users", (users: User[]) => {
+      // initial users
+      console.log(`initial users: `, users);
+      const usersExcludeSelf = users.filter((user) => user.id !== socket.id);
+      setUsers(usersExcludeSelf);
+    });
+
+    socket.on("new_user", (user: User) => {
+      // any user connected after host is connected
+      console.log(`new user: `, user);
+      const existingUsers = [...users];
+      const isUserExist = existingUsers.some((u) => u.id === user.id);
+      if (!isUserExist) {
+        setUsers((prev) => [...prev, user]);
+      }
+    });
+
+    return () => {
+      socket.off("initial_users");
+      socket.off("new_user");
+    };
+  }, []);
+
   return (
     <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen">
       <h3 className="my-10 text-3xl capitalize">Hi, {username}</h3>
@@ -29,8 +55,15 @@ export const NavigationPanel = ({ users, username }: { users: User[]; username: 
         <div>
           <h1>Online users</h1>
           <div className="p-4 bg-slate-200 rounded">
+            {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
             {users.map((user) => (
-              <p onClick={() => setSelectedUser(user)} key={user.id} className="p-2 my-2 border border-slate-700 rounded">
+              <p
+                onClick={() => setSelectedUser(user)}
+                key={user.id}
+                className={`p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
+                  selectedUser?.username === user.username ? "bg-slate-700 text-white" : ""
+                }`}
+              >
                 {user.username}
               </p>
             ))}
