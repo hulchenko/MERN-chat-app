@@ -2,25 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "../context/SessionProvider";
 import socket from "../socket";
-
-interface User {
-  id: string;
-  username: string;
-}
+import { User } from "../interface/User";
+import { NavigationPanel } from "../components/NavigationPanel";
 
 export const Home = () => {
+  const { session } = useSession();
   const [username, setUsername] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
-  const [room, setRoom] = useState<string>("");
-  const { session } = useSession();
 
   const navigate = useNavigate();
-
-  const joinRoom = () => {
-    if (room && username) {
-      navigate(`/${room}`);
-    }
-  };
 
   useEffect(() => {
     if (session) {
@@ -54,18 +44,10 @@ export const Home = () => {
 
   return (
     <div>
-      <button onClick={() => navigate("/login")}>Login</button>
-      <div>
-        <h3>Hi, {username}</h3>
-        {/* <input type="text" placeholder="Room" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoom(e.target.value)} />
-        <button onClick={joinRoom}>Join</button> */}
-        <h5>Online users:</h5>
-        <ul>
-          {users.map((user) => (
-            <p key={user.id}>{user.username}</p>
-          ))}
-        </ul>
-      </div>
+      <button className="absolute top-10 right-10 border border-red-400 p-6" onClick={() => navigate("/login")}>
+        Login
+      </button>
+      <NavigationPanel users={users} username={username} />
     </div>
   );
 };
