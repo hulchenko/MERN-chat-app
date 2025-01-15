@@ -4,10 +4,12 @@ import { useSelectedUser } from "../context/SelectedUserProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
 import { useConversation } from "../context/ConversationProvider";
+import toast from "react-hot-toast";
 
 const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
 
 export const NavigationPanel = ({ username }: { username: string }) => {
+  const [isOnline, setOnline] = useState<boolean>(false);
   const [room, setRoom] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
 
@@ -71,14 +73,23 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   };
 
   useEffect(() => {
+    socket.on("connect", () => {
+      console.log("YES");
+      setOnline(true), toast.success("Connected.");
+    });
     socket.on("initial_users", (users: User[]) => initialUsersHandler(users));
     socket.on("new_user", (user: User) => newUserHandler(user));
     socket.on("user_disconnect", (userId: string = "") => userDisconnectHandler(userId));
+    socket.on("disconnect", () => {
+      setOnline(false), toast.error("Disconnected.");
+    });
 
     return () => {
+      socket.off("connect");
       socket.off("initial_users");
       socket.off("new_user");
       socket.off("user_disconnect");
+      socket.off("disconnect");
     };
   }, [initialUsersHandler, newUserHandler, userDisconnectHandler]);
 
@@ -94,6 +105,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   return (
     <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen gap-2">
       <h3 className="my-10 text-3xl capitalize">Hi, {username}</h3>
+      <p>Status: {isOnline ? <span className="text-green-600">Online</span> : <span className="text-red-400">Offline</span>}</p>
+      <hr />
       <div className="flex flex-col h-full justify-between">
         <div>
           <h1>Online users</h1>
@@ -132,8 +145,9 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       <button className="border border-slate-400 p-2" onClick={createRoom}>
         Create
       </button>
+      <hr />
       <button className="border border-red-400 p-2" onClick={() => navigate("/login")}>
-        Login
+        Login/Logout
       </button>
     </div>
   );
