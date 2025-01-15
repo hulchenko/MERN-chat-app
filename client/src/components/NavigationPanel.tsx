@@ -26,6 +26,32 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     // TODO Mongo POST
   };
 
+  const initialUsersHandler = (users: User[]) => {
+    // initial users
+    console.log(`initial users: `, users);
+    const usersExcludeSelf = users.filter((user) => user.id !== socket.id);
+    setUsers(usersExcludeSelf);
+  };
+
+  const newUserHandler = (user: User) => {
+    // any user connected after host is connected
+    console.log(`new user: `, user);
+    const existingUsers = [...users];
+    const isUserExist = existingUsers.some((u) => u.username === user.username);
+    if (!isUserExist) {
+      setUsers((prev) => [...prev, user]);
+    }
+  };
+
+  const userDisconnectHandler = (userId: string) => {
+    const usersArr = [...users];
+    const userIdx = usersArr.findIndex((user) => user.id === userId);
+    if (userIdx !== -1) {
+      usersArr.splice(userIdx, 1);
+      setUsers(usersArr);
+    }
+  };
+
   const displayNotification = (sender: string): void => {
     const usersArr = [...users];
     const userIdx = usersArr.findIndex((user) => user.username === sender);
@@ -45,28 +71,16 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   };
 
   useEffect(() => {
-    socket.on("initial_users", (users: User[]) => {
-      // initial users
-      console.log(`initial users: `, users);
-      const usersExcludeSelf = users.filter((user) => user.id !== socket.id);
-      setUsers(usersExcludeSelf);
-    });
-
-    socket.on("new_user", (user: User) => {
-      // any user connected after host is connected
-      console.log(`new user: `, user);
-      const existingUsers = [...users];
-      const isUserExist = existingUsers.some((u) => u.id === user.id);
-      if (!isUserExist) {
-        setUsers((prev) => [...prev, user]);
-      }
-    });
+    socket.on("initial_users", (users: User[]) => initialUsersHandler(users));
+    socket.on("new_user", (user: User) => newUserHandler(user));
+    socket.on("user_disconnect", (userId: string = "") => userDisconnectHandler(userId));
 
     return () => {
       socket.off("initial_users");
       socket.off("new_user");
+      socket.off("user_disconnect");
     };
-  }, []);
+  }, [initialUsersHandler, newUserHandler, userDisconnectHandler]);
 
   useEffect(() => {
     // display notification icon for new messages

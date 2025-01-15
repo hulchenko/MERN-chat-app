@@ -40,6 +40,11 @@ const websocketConnect = (server) => {
       });
     });
 
+    socket.on("disconnecting", () => {
+      console.log("user disconnected: ", socket.username);
+      socket.broadcast.emit("user_disconnect", socket.id);
+    });
+
     socket.onAny((event, ...args) => {
       // listen to all events
       console.log("SOCKET: ", event, args);
