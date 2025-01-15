@@ -31,7 +31,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const initialUsersHandler = (users: User[]) => {
     // initial users
     console.log(`initial users: `, users);
-    const usersExcludeSelf = users.filter((user) => user.id !== socket.id);
+    const usersExcludeSelf = users.filter((user) => user.sockedID !== socket.id);
     setUsers(usersExcludeSelf);
   };
 
@@ -45,9 +45,9 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     }
   };
 
-  const userDisconnectHandler = (userId: string) => {
+  const userDisconnectHandler = (userID: string) => {
     const usersArr = [...users];
-    const userIdx = usersArr.findIndex((user) => user.id === userId);
+    const userIdx = usersArr.findIndex((user) => user.sockedID === userID);
     if (userIdx !== -1) {
       usersArr.splice(userIdx, 1);
       setUsers(usersArr);
@@ -74,12 +74,11 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   useEffect(() => {
     socket.on("connect", () => {
-      console.log("YES");
       setOnline(true), toast.success("Connected.");
     });
     socket.on("initial_users", (users: User[]) => initialUsersHandler(users));
     socket.on("new_user", (user: User) => newUserHandler(user));
-    socket.on("user_disconnect", (userId: string = "") => userDisconnectHandler(userId));
+    socket.on("user_disconnect", (userID: string) => userDisconnectHandler(userID));
     socket.on("disconnect", () => {
       setOnline(false), toast.error("Disconnected.");
     });
@@ -114,7 +113,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
             {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
             {users.map((user) => (
               <p
-                key={user.id}
+                key={user.sockedID}
                 onClick={() => {
                   setSelectedUser(user), removeNotification(user);
                 }}

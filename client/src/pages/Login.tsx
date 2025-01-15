@@ -1,19 +1,17 @@
 import { useState } from "react";
-import { useSession } from "../context/SessionProvider";
 import { useNavigate } from "react-router-dom";
 import socket from "../socket";
 
 interface Response {
   error: boolean;
-  username?: string;
-  message?: string;
+  token: string;
+  message: string;
 }
 
 export const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const { setSession } = useSession();
   const navigate = useNavigate();
 
   const authenticate = async (): Promise<Response> => {
@@ -39,12 +37,11 @@ export const Login = () => {
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error, message = "", username = "" } = await authenticate();
+    const { error, message = "", token = "" } = await authenticate();
     if (error) {
       return setAuthError(message);
     }
-    setSession({ username });
-    socket.auth = { username };
+    socket.auth = { token };
     socket.connect();
     navigate("/");
   };

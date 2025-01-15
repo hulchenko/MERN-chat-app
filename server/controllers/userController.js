@@ -1,3 +1,4 @@
+import { generateJWT } from "../auth/auth.js";
 import User from "../models/User.js";
 
 // get user
@@ -12,7 +13,7 @@ import User from "../models/User.js";
 
 const getUser = async (req, res, next) => {
   try {
-    const { username } = req.query; // TODO update to use username(unique)/password instead
+    const { username } = req.query;
 
     if (!username) {
       return res.status(400).json({ error: true, message: "Username is required to get user." });
@@ -56,11 +57,12 @@ const loginUser = async (req, res, next) => {
     if (password !== user.password) {
       return res.status(400).json({ error: true, message: "Incorrect password." });
     }
-    return res.status(200).json({ error: false, username: user.username });
+    const token = generateJWT(user);
+    return res.status(200).json({ error: false, id: user.id, username: user.username, token });
   } catch (error) {
     console.log("loginUser error: ", error);
     next(error);
   }
 };
 
-export { getUser, createUser, loginUser };
+export { createUser, getUser, loginUser };

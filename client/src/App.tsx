@@ -5,7 +5,8 @@ import toast, { Toaster } from "react-hot-toast";
 export const App = () => {
   socket.on("connect_error", (err) => {
     console.error(err);
-    toast.error("Websocket disconnected."); // TODO add throttle to display toast once every 30 seconds
+    toast.error(err.message); // TODO add throttle to display toast once every 30 seconds
+    //TODO call signout method and kick user out
   });
 
   return (

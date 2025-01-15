@@ -15,19 +15,25 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
 
   const storeLocally = () => {
-    if (session && session.username) {
+    if (session && session.username && session.token && session.id) {
+      const id = localStorage.getItem("id");
       const username = localStorage.getItem("username");
-      if (!username) {
+      const token = localStorage.getItem("token");
+      if (!id || !username || !token) {
+        localStorage.setItem("id", session.id);
         localStorage.setItem("username", session.username);
+        localStorage.setItem("token", session.token);
       }
     }
   };
 
   useEffect(() => {
     if (!session) {
+      const id = localStorage.getItem("id");
       const username = localStorage.getItem("username");
-      if (username) {
-        return setSession({ username });
+      const token = localStorage.getItem("token");
+      if (id && username && token) {
+        return setSession({ id, username, token });
       }
     }
     storeLocally();
