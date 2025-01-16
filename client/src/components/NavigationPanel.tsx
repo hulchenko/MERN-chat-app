@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useConversation } from "../context/ConversationProvider";
 import { useSelectedUser } from "../context/SelectedUserProvider";
+import { useSession } from "../context/SessionProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
-import { useConversation } from "../context/ConversationProvider";
-import toast from "react-hot-toast";
 
 const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
 
@@ -13,6 +14,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const [room, setRoom] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
 
+  const { session, clearSession } = useSession();
   const { selectedUser, setSelectedUser } = useSelectedUser();
   const { lastMessage } = useConversation();
 
@@ -31,7 +33,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const initialUsersHandler = (users: User[]) => {
     // initial users
     console.log(`initial users: `, users);
-    const usersExcludeSelf = users.filter((user) => user.sockedID !== socket.id);
+    const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
     setUsers(usersExcludeSelf);
   };
 
@@ -40,14 +42,15 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     console.log(`new user: `, user);
     const existingUsers = [...users];
     const isUserExist = existingUsers.some((u) => u.username === user.username);
-    if (!isUserExist) {
+    const self = user.username === session?.username; // support multiple active tabs for the same user
+    if (!isUserExist && !self) {
       setUsers((prev) => [...prev, user]);
     }
   };
 
   const userDisconnectHandler = (userID: string) => {
     const usersArr = [...users];
-    const userIdx = usersArr.findIndex((user) => user.sockedID === userID);
+    const userIdx = usersArr.findIndex((user) => user.userID === userID);
     if (userIdx !== -1) {
       usersArr.splice(userIdx, 1);
       setUsers(usersArr);
@@ -70,6 +73,11 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       usersArr[userIdx].newMessage = false;
       setUsers(usersArr);
     }
+  };
+
+  const signOut = () => {
+    clearSession();
+    navigate("/login");
   };
 
   useEffect(() => {
@@ -113,7 +121,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
             {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
             {users.map((user) => (
               <p
-                key={user.sockedID}
+                key={user.userID}
                 onClick={() => {
                   setSelectedUser(user), removeNotification(user);
                 }}
@@ -145,8 +153,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         Create
       </button>
       <hr />
-      <button className="border border-red-400 p-2" onClick={() => navigate("/login")}>
-        Login/Logout
+      <button className="border border-red-400 p-2" onClick={signOut}>
+        Sign Out
       </button>
     </div>
   );
