@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 import { User } from "../interface/User";
 
 interface SelectedUserContext {
@@ -7,7 +7,7 @@ interface SelectedUserContext {
 }
 
 const SelectedUser = createContext<SelectedUserContext>({
-  selectedUser: { id: "", username: "", newMessage: false },
+  selectedUser: { userID: "", username: "", newMessage: false, connected: false },
   setSelectedUser: () => {},
 });
 

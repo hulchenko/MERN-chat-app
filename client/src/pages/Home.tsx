@@ -5,35 +5,24 @@ import { NavigationPanel } from "../components/NavigationPanel";
 import { ConversationProvider } from "../context/ConversationProvider";
 import { SelectedUserProvider } from "../context/SelectedUserProvider";
 import { useSession } from "../context/SessionProvider";
-import { User } from "../interface/User";
 import socket from "../socket";
 
-interface AuthSocket extends Partial<User> {
-  token: string;
-}
-
 export const Home = () => {
-  const { session, setSession } = useSession();
+  const { session } = useSession();
   const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     if (session) {
-      setUsername(session.username);
+      console.log("SESSION FIRED", session);
+      const { username, sessionID: token } = session; // after token is decoded it becomes sessionID on the server side
+
+      // reconnect socket after page reload
+      socket.auth = { token };
+      socket.connect();
+
+      setUsername(username);
     }
   }, [session]);
-
-  useEffect(() => {
-    socket.on("authenticated", (authSocketData: AuthSocket) => {
-      const { id, username, token } = authSocketData;
-      if (id && username && token) {
-        setSession({ id, username, token });
-      }
-    });
-
-    return () => {
-      socket.off("authenticated");
-    };
-  }, []);
 
   return (
     <div className="flex w-full">

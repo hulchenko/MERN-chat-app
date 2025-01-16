@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useConversation, generateConversationKey } from "../context/ConversationProvider";
+import { useEffect } from "react";
+import { generateConversationKey, useConversation } from "../context/ConversationProvider";
 import { useSelectedUser } from "../context/SelectedUserProvider";
-import socket from "../socket";
 import { Message } from "../interface/Message";
+import socket from "../socket";
 
 export const ChatContainer = ({ username }: { username: string }) => {
   const { selectedUser } = useSelectedUser();

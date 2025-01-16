@@ -1,6 +1,6 @@
 export interface User {
-  id: string;
-  sockedID: string;
+  userID: string;
   username: string;
+  connected: boolean; // TODO review, maybe not needed
   newMessage?: boolean;
 }

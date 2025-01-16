@@ -37,10 +37,11 @@ export const Login = () => {
 
   const submitHandler = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error, message = "", token = "" } = await authenticate();
+    const { error, message, token } = await authenticate();
     if (error) {
       return setAuthError(message);
     }
+
     socket.auth = { token };
     socket.connect();
     navigate("/");
