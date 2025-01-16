@@ -11,7 +11,11 @@ export class SessionStore {
     // console.log("Save session: ", this.sessions[id]);
   }
 
-  findAllSessions() {
+  removeSession(id) {
+    delete this.sessions[id];
+  }
+
+  getAllSessions() {
     // console.log("All sessions: ", this.sessions);
     return this.sessions;
   }

@@ -52,7 +52,7 @@ const websocketConnect = (server) => {
 
     // Get session users
     const users = []; // re-render anew on a fresh connection
-    Object.values(sessionStore.findAllSessions()).forEach((session) => {
+    Object.values(sessionStore.getAllSessions()).forEach((session) => {
       users.push({
         userID: session.userID,
         username: session.username,
@@ -77,9 +77,19 @@ const websocketConnect = (server) => {
       });
     });
 
+    socket.on("sign_out", () => {
+      // remove user in the session store
+      sessionStore.removeSession(socket.sessionID);
+      socket.signout = true;
+      socket.disconnect();
+    });
+
     socket.on("disconnect", async () => {
-      // check for any outstanding connections for the socket
-      const userActiveSockets = await io.in(socket.userID).fetchSockets();
+      const isSignedOut = socket.signout;
+      if (isSignedOut) return; // skip storing session
+
+      // preserve user in the session store
+      const userActiveSockets = await io.in(socket.userID).fetchSockets(); // same user, different browsers/devices/tabs
       const isDisconnected = userActiveSockets.length === 0;
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
