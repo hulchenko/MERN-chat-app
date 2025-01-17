@@ -1,23 +1,9 @@
-import { useEffect } from "react";
 import { generateConversationKey, useConversation } from "../context/ConversationProvider";
 import { useSelectedUser } from "../context/SelectedUserProvider";
-import { Message } from "../interface/Message";
-import socket from "../socket";
 
 export const ChatContainer = ({ username }: { username: string }) => {
   const { selectedUser } = useSelectedUser();
-  const { conversation, addMessage } = useConversation();
-
-  useEffect(() => {
-    socket.on("private_message", (data: Message) => {
-      const { from, to, content } = data;
-      console.log(`Incoming PM: from: ${from}, to: ${to}, content: ${content}`);
-      addMessage(from, to, content); // fires only for receiving socket
-    });
-    return () => {
-      socket.off("private_message");
-    };
-  }, []);
+  const { conversation } = useConversation();
 
   const conversationKey = generateConversationKey(username, selectedUser?.username || "");
   const messages = conversation[conversationKey];

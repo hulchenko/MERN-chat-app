@@ -1,5 +1,6 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { Message } from "../interface/Message";
+import socket from "../socket";
 
 interface ConversationContext {
   conversation: ConversationMessage;
@@ -25,7 +26,7 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [conversation, setConversation] = useState<ConversationMessage>({});
   const [lastMessage, setLastMessage] = useState<Message>({ from: "", to: "", content: "", timestamp: 0 });
 
-  const addMessage = (from: string, to: string, content: string): void => {
+  const addMessage = useCallback((from: string, to: string, content: string): void => {
     const key = generateConversationKey(from, to);
     const timestamp = Date.now();
     const message: Message = { from, content, to, timestamp };
@@ -39,9 +40,20 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
       };
     });
     setLastMessage({ from, to, content, timestamp });
-  };
+  }, []);
 
   useEffect(() => console.log("Conversation: ", conversation), [conversation]);
+
+  useEffect(() => {
+    socket.on("private_message", (data: Message) => {
+      const { from, to, content } = data;
+      console.log(`Incoming PM: from: ${from}, to: ${to}, content: ${content}`);
+      addMessage(from, to, content); // fires only for receiving socket
+    });
+    return () => {
+      socket.off("private_message");
+    };
+  }, []);
 
   return <ConversationContext.Provider value={{ conversation, lastMessage, addMessage }}>{children}</ConversationContext.Provider>;
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useConversation } from "../context/ConversationProvider";
@@ -30,14 +30,18 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     // TODO Mongo POST
   };
 
-  const initialUsersHandler = (users: User[]) => {
-    // initial users
-    console.log(`initial users: `, users);
-    const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
-    setUsers(usersExcludeSelf);
-  };
+  const initialUsersHandler = useCallback(
+    (users: User[]) => {
+      if (!session?.userID) return;
+      // initial users
+      console.log(`initial users: `, users);
+      const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
+      setUsers(usersExcludeSelf);
+    },
+    [session]
+  );
 
-  const newUserHandler = (user: User) => {
+  const newUserHandler = useCallback((user: User) => {
     // any user connected after host is connected
     console.log(`new user: `, user);
     const existingUsers = [...users];
@@ -46,25 +50,25 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     if (!isUserExist && !self) {
       setUsers((prev) => [...prev, user]);
     }
-  };
+  }, []);
 
-  const userDisconnectHandler = (userID: string) => {
+  const userDisconnectHandler = useCallback((userID: string) => {
     const usersArr = [...users];
     const userIdx = usersArr.findIndex((user) => user.userID === userID);
     if (userIdx !== -1) {
       usersArr.splice(userIdx, 1);
       setUsers(usersArr);
     }
-  };
+  }, []);
 
-  const displayNotification = (sender: string): void => {
+  const displayNotification = useCallback((sender: string): void => {
     const usersArr = [...users];
     const userIdx = usersArr.findIndex((user) => user.username === sender);
     if (userIdx !== -1) {
       usersArr[userIdx].newMessage = true;
       setUsers(usersArr);
     }
-  };
+  }, []);
 
   const removeNotification = (targetUser: User): void => {
     const usersArr = [...users];
@@ -82,14 +86,13 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   useEffect(() => {
     socket.on("connect", () => {
-      setOnline(true), toast.success("Connected.");
+      toast.success("Connected.");
+      setOnline(true);
     });
     socket.on("initial_users", (users: User[]) => initialUsersHandler(users));
     socket.on("new_user", (user: User) => newUserHandler(user));
     socket.on("user_disconnect", (userID: string) => userDisconnectHandler(userID));
-    socket.on("disconnect", () => {
-      setOnline(false), toast.error("Disconnected.");
-    });
+    socket.on("disconnect", () => toast.error("Disconnected."));
 
     return () => {
       socket.off("connect");
