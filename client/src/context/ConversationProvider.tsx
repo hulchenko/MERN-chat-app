@@ -36,6 +36,8 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
       } else {
         conversationArr[key] = [message];
       }
+
+      conversationArr[key].sort((curr, next) => curr.timestamp - next.timestamp); // sort by asc timestamp to preserve proper timing on session reload
       return conversationArr;
     });
     setLastMessage({ from, to, content, timestamp });
