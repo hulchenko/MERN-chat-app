@@ -1,53 +1,48 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { Session } from "../interface/Session";
 import socket from "../socket";
 
 interface SessionContext {
   session: Session | null;
-  setSession: (session: Session) => void;
   clearSession: () => void;
 }
 
 const SessionContext = createContext<SessionContext>({
   session: null,
-  setSession: () => {},
   clearSession: () => {},
 });
 
+enum LocalStorage {
+  userID = "userID",
+  username = "username",
+  sessionID = "sessionID",
+}
+
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSessionState] = useState<Session | null>(null);
 
-  const clearSession = () => {
+  const setSession = useCallback((session: Session) => {
+    setSessionState(session);
+    localStorage.setItem(LocalStorage.userID, session.userID);
+    localStorage.setItem(LocalStorage.username, session.username);
+    localStorage.setItem(LocalStorage.sessionID, session.sessionID);
+  }, []);
+
+  const clearSession = useCallback(() => {
     socket.emit("sign_out");
+    socket.disconnect();
     localStorage.clear();
-    setSession(null);
-  };
-
-  const storeLocally = () => {
-    if (session && session.username && session.sessionID && session.userID) {
-      const userID = localStorage.getItem("userID");
-      const username = localStorage.getItem("username");
-      const sessionID = localStorage.getItem("sessionID");
-      if (!userID || !username || !sessionID) {
-        localStorage.setItem("userID", session.userID);
-        localStorage.setItem("username", session.username);
-        localStorage.setItem("sessionID", session.sessionID);
-      }
-    }
-  };
+    setSessionState(null);
+  }, []);
 
   useEffect(() => {
-    if (!session) {
-      const userID = localStorage.getItem("userID");
-      const username = localStorage.getItem("username");
-      const sessionID = localStorage.getItem("sessionID");
-      if (userID && username && sessionID) {
-        return setSession({ userID, username, sessionID });
-      }
+    const userID = localStorage.getItem(LocalStorage.userID);
+    const username = localStorage.getItem(LocalStorage.username);
+    const sessionID = localStorage.getItem(LocalStorage.sessionID);
+    if (userID && username && sessionID) {
+      setSession({ userID, username, sessionID });
     }
-    storeLocally();
-    // console.log("SESSION: ", session);
-  }, [session]);
+  }, []);
 
   useEffect(() => {
     socket.on("session", (socketSession: Session) => {
@@ -62,7 +57,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  return <SessionContext.Provider value={{ session, setSession, clearSession }}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={{ session, clearSession }}>{children}</SessionContext.Provider>;
 };
 
 export const useSession = () => useContext(SessionContext);
