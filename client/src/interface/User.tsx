@@ -1,6 +1,8 @@
+import { Message } from "./Message";
+
 export interface User {
   userID: string;
   username: string;
-  connected: boolean; // TODO review, maybe not needed
+  messages: Message[];
   newMessage?: boolean;
 }

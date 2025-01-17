@@ -13,10 +13,10 @@ export const ChatInput = ({ username }: { username: string }) => {
     e.preventDefault();
 
     const newMessage = message.trim();
+    const timestamp = Date.now();
     if (selectedUser && newMessage) {
-      socket.emit("private_message", { content: newMessage, recipient: selectedUser });
-      // const localMessage: Message = { username: "You", message };
-      addMessage(username, selectedUser.username, newMessage); // fires only for sending socket
+      socket.emit("private_message", { content: newMessage, recipient: selectedUser, timestamp });
+      addMessage(username, selectedUser.username, newMessage, timestamp); // fires only for sending socket
       setMessage("");
     }
   };

@@ -1,10 +1,12 @@
 import { Server } from "socket.io";
 import { verifyJWT } from "../auth/auth.js";
-import { SessionStore } from "../sessionStore.js";
+import SessionStore from "../sessionStore.js";
+import MessageStore from "../messageStore.js";
 
 const websocketConnect = (server) => {
   const io = new Server(server);
   const sessionStore = new SessionStore();
+  const messageStore = new MessageStore();
 
   io.use((socket, next) => {
     try {
@@ -45,7 +47,6 @@ const websocketConnect = (server) => {
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
       username: socket.username,
-      connected: true,
     });
     socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
@@ -53,28 +54,30 @@ const websocketConnect = (server) => {
     // Get session users
     const users = []; // re-render anew on a fresh connection
     Object.values(sessionStore.getAllSessions()).forEach((session) => {
+      const userMessages = messageStore.getMessages(session.username);
       users.push({
         userID: session.userID,
         username: session.username,
-        connected: session.connected,
+        messages: userMessages,
       });
     });
     console.log("Online count: ", users.length);
     socket.emit("initial_users", users);
 
     // Notify all connections with new users
-    socket.broadcast.emit("new_user", { userID: socket.userID, username: socket.username, connected: true });
+    socket.broadcast.emit("new_user", {
+      userID: socket.userID,
+      username: socket.username,
+      messages: [],
+    });
 
     // Tet-a-tet messaging
     socket.on("private_message", (data) => {
-      const { recipient, content } = data;
-      console.log("Users: ", users);
+      const { recipient, content, timestamp } = data;
       console.log(`Private message: Sending '${content}' from ${socket.userID} to ${recipient}`);
-      socket.to(recipient.userID).emit("private_message", {
-        content,
-        from: socket.username,
-        to: recipient.username,
-      });
+      const message = { content, from: socket.username, to: recipient.username, timestamp };
+      socket.to(recipient.userID).emit("private_message", message);
+      messageStore.saveMessage(message);
     });
 
     socket.on("sign_out", () => {
@@ -82,6 +85,7 @@ const websocketConnect = (server) => {
       sessionStore.removeSession(socket.sessionID);
       socket.signout = true;
       socket.disconnect();
+      socket.broadcast.emit("user_disconnect", socket.userID);
     });
 
     socket.on("disconnect", async () => {
@@ -94,12 +98,6 @@ const websocketConnect = (server) => {
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
         socket.broadcast.emit("user_disconnect", socket.userID);
-
-        sessionStore.saveSession(socket.sessionID, {
-          userID: socket.userID,
-          username: socket.username,
-          connected: false, // update store connection status
-        });
       }
     });
 

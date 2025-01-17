@@ -7,7 +7,7 @@ interface SelectedUserContext {
 }
 
 const SelectedUser = createContext<SelectedUserContext>({
-  selectedUser: { userID: "", username: "", newMessage: false, connected: false },
+  selectedUser: { userID: "", username: "", newMessage: false, messages: [] },
   setSelectedUser: () => {},
 });
 

@@ -5,7 +5,7 @@ import socket from "../socket";
 interface ConversationContext {
   conversation: ConversationMessage;
   lastMessage: Message;
-  addMessage: (from: string, to: string, content: string) => void;
+  addMessage: (from: string, to: string, content: string, timestamp: number) => void;
 }
 
 type ConversationMessage = {
@@ -26,9 +26,8 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [conversation, setConversation] = useState<ConversationMessage>({});
   const [lastMessage, setLastMessage] = useState<Message>({ from: "", to: "", content: "", timestamp: 0 });
 
-  const addMessage = useCallback((from: string, to: string, content: string): void => {
+  const addMessage = useCallback((from: string, to: string, content: string, timestamp: number): void => {
     const key = generateConversationKey(from, to);
-    const timestamp = Date.now();
     const message: Message = { from, content, to, timestamp };
     setConversation((prev) => {
       return {
@@ -46,9 +45,9 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     socket.on("private_message", (data: Message) => {
-      const { from, to, content } = data;
+      const { from, to, content, timestamp } = data;
       console.log(`Incoming PM: from: ${from}, to: ${to}, content: ${content}`);
-      addMessage(from, to, content); // fires only for receiving socket
+      addMessage(from, to, content, timestamp); // fires only for receiving socket
     });
     return () => {
       socket.off("private_message");
