@@ -16,7 +16,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   const { session, clearSession } = useSession();
   const { selectedUser, setSelectedUser } = useSelectedUser();
-  const { lastMessage } = useConversation();
+  const { addMessage, lastMessage } = useConversation();
 
   const navigate = useNavigate();
 
@@ -30,18 +30,31 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     // TODO Mongo POST
   };
 
+  const recreateConversation = useCallback(
+    (users: User[]) => {
+      if (!users || users.length === 0) return;
+      users.forEach((user) => {
+        user.messages.forEach(({ from, to, content, timestamp }) => {
+          addMessage(from, to, content, timestamp);
+        });
+      });
+    },
+    [users]
+  );
+
   const initialUsersHandler = useCallback(
     (users: User[]) => {
       if (!session?.userID) return;
       // initial users
       console.log(`initial users: `, users);
+      recreateConversation(users);
       const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
       setUsers(usersExcludeSelf);
     },
     [session]
   );
 
-  const newUserHandler = useCallback((user: User) => {
+  const newUserHandler = (user: User) => {
     // any user connected after host is connected
     console.log(`new user: `, user);
     const existingUsers = [...users];
@@ -50,7 +63,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     if (!isUserExist && !self) {
       setUsers((prev) => [...prev, user]);
     }
-  }, []);
+  };
 
   const userDisconnectHandler = useCallback((userID: string) => {
     const usersArr = [...users];
@@ -101,7 +114,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       socket.off("user_disconnect");
       socket.off("disconnect");
     };
-  }, [initialUsersHandler, newUserHandler, userDisconnectHandler]);
+  }, [socket, initialUsersHandler, newUserHandler, userDisconnectHandler]);
 
   useEffect(() => {
     // display notification icon for new messages
