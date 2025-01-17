@@ -54,43 +54,53 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     [session]
   );
 
-  const newUserHandler = (user: User) => {
-    // any user connected after host is connected
-    console.log(`new user: `, user);
-    const existingUsers = [...users];
-    const isUserExist = existingUsers.some((u) => u.username === user.username);
-    const self = user.username === session?.username; // support multiple active tabs for the same user
-    if (!isUserExist && !self) {
-      setUsers((prev) => [...prev, user]);
-    }
-  };
+  const newUserHandler = useCallback(
+    (user: User) => {
+      // any user connected after host is connected
+      if (!session?.username) return;
+      console.log(`new user: `, user);
+      const existingUsers = [...users];
+      const isUserExist = existingUsers.some((u) => u.username === user.username);
+      const self = user.username === session?.username; // support multiple active tabs for the same user
+      if (!isUserExist && !self) {
+        setUsers((prev) => [...prev, user]);
+      }
+    },
+    [session, users]
+  );
 
   const userDisconnectHandler = useCallback((userID: string) => {
-    const usersArr = [...users];
-    const userIdx = usersArr.findIndex((user) => user.userID === userID);
-    if (userIdx !== -1) {
-      usersArr.splice(userIdx, 1);
-      setUsers(usersArr);
-    }
+    setUsers((prev) => {
+      const usersArr = [...prev];
+      const userIdx = usersArr.findIndex((user) => user.userID === userID);
+      if (userIdx !== -1) {
+        usersArr.splice(userIdx, 1);
+      }
+      return usersArr;
+    });
   }, []);
 
   const displayNotification = useCallback((sender: string): void => {
-    const usersArr = [...users];
-    const userIdx = usersArr.findIndex((user) => user.username === sender);
-    if (userIdx !== -1) {
-      usersArr[userIdx].newMessage = true;
-      setUsers(usersArr);
-    }
+    setUsers((prev) => {
+      const usersArr = [...prev];
+      const userIdx = usersArr.findIndex((user) => user.username === sender);
+      if (userIdx !== -1) {
+        usersArr[userIdx].newMessage = true;
+      }
+      return usersArr;
+    });
   }, []);
 
-  const removeNotification = (targetUser: User): void => {
-    const usersArr = [...users];
-    const userIdx = usersArr.findIndex((user) => user.username === targetUser.username);
-    if (userIdx !== -1) {
-      usersArr[userIdx].newMessage = false;
-      setUsers(usersArr);
-    }
-  };
+  const removeNotification = useCallback((targetUser: User): void => {
+    setUsers((prev) => {
+      const usersArr = [...prev];
+      const userIdx = usersArr.findIndex((user) => user.username === targetUser.username);
+      if (userIdx !== -1) {
+        usersArr[userIdx].newMessage = false;
+      }
+      return usersArr;
+    });
+  }, []);
 
   const signOut = () => {
     clearSession();
@@ -120,10 +130,11 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     // display notification icon for new messages
     const sender = lastMessage.from;
     const targetUser = selectedUser?.username;
-    if (sender !== targetUser) {
+    const isForHost = lastMessage.to === session?.username;
+    if (sender !== targetUser && isForHost) {
       displayNotification(sender);
     }
-  }, [lastMessage]);
+  }, [lastMessage, session]);
 
   return (
     <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen gap-2">
@@ -139,7 +150,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
               <p
                 key={user.userID}
                 onClick={() => {
-                  setSelectedUser(user), removeNotification(user);
+                  setSelectedUser(user);
+                  removeNotification(user);
                 }}
                 className={`p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
                   selectedUser?.username === user.username ? "bg-slate-700 text-white" : ""

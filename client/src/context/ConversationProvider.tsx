@@ -30,13 +30,13 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     const key = generateConversationKey(from, to);
     const message: Message = { from, content, to, timestamp };
     setConversation((prev) => {
-      return {
-        ...prev, // spread original object
-        [key]: [
-          ...(prev[key] || []), // spread any existing array within the key or create a new one
-          message,
-        ],
-      };
+      const conversationArr = { ...prev };
+      if (conversationArr[key]) {
+        conversationArr[key] = [...conversationArr[key], message];
+      } else {
+        conversationArr[key] = [message];
+      }
+      return conversationArr;
     });
     setLastMessage({ from, to, content, timestamp });
   }, []);
