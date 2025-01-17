@@ -1,4 +1,4 @@
-export class SessionStore {
+class SessionStore {
   sessions = {};
 
   findSession(id) {
@@ -20,3 +20,5 @@ export class SessionStore {
     return this.sessions;
   }
 }
+
+export default SessionStore;
