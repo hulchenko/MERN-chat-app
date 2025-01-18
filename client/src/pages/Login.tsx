@@ -52,18 +52,24 @@ export const Login = () => {
       <div className="border border-slate-700 p-4 flex flex-col items-center rounded">
         <h3 className="text-xl mb-4">Join Chat</h3>
         <form onSubmit={submitHandler} className="flex flex-col w-full gap-2">
+          <h3>Username:</h3>
           <input
             className="p-1 rounded"
             type="text"
-            placeholder="username"
+            placeholder="Your username..."
             autoComplete="on"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+            minLength={4}
+            maxLength={20}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value.trim().toLowerCase())}
           />
+          <h3>Password:</h3>
           <input
             className="p-1 rounded"
             type="password"
-            placeholder="password"
+            placeholder="Your password..."
             autoComplete="on"
+            minLength={4}
+            maxLength={20}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           />
           <button type="submit" className="border w-20 rounded m-auto">
