@@ -2,11 +2,13 @@ import { Server } from "socket.io";
 import { verifyJWT } from "../auth/auth.js";
 import SessionStore from "../sessionStore.js";
 import MessageStore from "../messageStore.js";
+import RoomStore from "../roomStore.js";
 
 const websocketConnect = (server) => {
   const io = new Server(server);
   const sessionStore = new SessionStore();
   const messageStore = new MessageStore();
+  const roomStore = new RoomStore();
 
   io.use((socket, next) => {
     try {
@@ -54,10 +56,19 @@ const websocketConnect = (server) => {
     const users = []; // re-render anew on a fresh connection
     Object.values(sessionStore.getAllSessions()).forEach((session) => {
       const userMessages = messageStore.getMessages(session.username);
+      const userRooms = roomStore.getUserRooms(session.username);
+      const roomMessages = [];
+      userRooms.forEach((roomName) => {
+        const messages = messageStore.getRoomMessages(roomName);
+        roomMessages.push(...messages);
+      });
+
       users.push({
         userID: session.userID,
         username: session.username,
         messages: userMessages,
+        rooms: userRooms,
+        roomMessages,
       });
     });
     console.log("Online count: ", users.length);
@@ -68,6 +79,8 @@ const websocketConnect = (server) => {
       userID: socket.userID,
       username: socket.username,
       messages: [],
+      rooms: [],
+      roomMessages: [],
     });
 
     // Tet-a-tet messaging
@@ -84,7 +97,7 @@ const websocketConnect = (server) => {
       socket.join(roomName);
       console.log(`USER ${socket.username} joined room: ${roomName}`);
       socket.to(roomName).emit("user_joined", { username: socket.username, roomName });
-      // sessionStore.saveSession //TODO
+      roomStore.saveRoom(socket.username, roomName);
     });
 
     socket.on("room_message", (data) => {
@@ -92,14 +105,14 @@ const websocketConnect = (server) => {
       const message = { content, from, to: roomName, timestamp };
       console.log("ROOM MESSAGE: ", message);
       socket.to(roomName).emit("room_message", message);
-      // messageStore.saveMessage(message) //TODO
+      messageStore.saveRoomMessage(roomName, message);
     });
 
     socket.on("leave_room", (roomName) => {
       socket.leave(roomName);
       console.log(`USER ${socket.username} left room: ${roomName}`);
       socket.to(roomName).emit("user_left", { username: socket.username, roomName });
-      // sessionStore.saveSession //TODO
+      roomStore.removeRoom(socket.username, roomName);
     });
 
     socket.on("sign_out", () => {

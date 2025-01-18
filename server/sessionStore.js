@@ -3,7 +3,7 @@ class SessionStore {
 
   findSession(id) {
     // console.log("Find session: ", this.sessions[id]);
-    return this.sessions[id];
+    return this.sessions[id] || null;
   }
 
   saveSession(id, session) {
