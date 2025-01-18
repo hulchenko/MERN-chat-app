@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { ChatContainer } from "../components/ChatContainer";
 import { ChatInput } from "../components/ChatInput";
 import { NavigationPanel } from "../components/NavigationPanel";
+import { SelectedChannelProvider } from "../context/SelectedChannelProvider";
 import { ConversationProvider } from "../context/ConversationProvider";
-import { SelectedUserProvider } from "../context/SelectedUserProvider";
 import { useSession } from "../context/SessionProvider";
 import socket from "../socket";
 
@@ -26,7 +26,7 @@ export const Home = () => {
 
   return (
     <div className="flex w-full">
-      <SelectedUserProvider>
+      <SelectedChannelProvider>
         <ConversationProvider>
           <NavigationPanel username={username} />
           <div className="flex flex-col h-screen w-full">
@@ -34,7 +34,7 @@ export const Home = () => {
             <ChatInput username={username} />
           </div>
         </ConversationProvider>
-      </SelectedUserProvider>
+      </SelectedChannelProvider>
     </div>
   );
 };
