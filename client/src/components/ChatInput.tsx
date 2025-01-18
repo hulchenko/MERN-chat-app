@@ -30,18 +30,20 @@ export const ChatInput = ({ username }: { username: string }) => {
   };
 
   return (
-    <form onSubmit={sendMessage} className="mb-6 w-full flex justify-center gap-4">
-      <input
-        disabled={!selectedUser && !selectedRoom}
-        className="w-1/2 p-2 rounded"
-        type="text"
-        placeholder="Type a message"
-        value={message}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
-      />
-      <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-slate-500 rounded w-40">
-        Send
-      </button>
+    <form onSubmit={sendMessage} className="px-96 py-4" hidden={!selectedUser && !selectedRoom}>
+      <div className="w-full flex gap-4">
+        <input
+          disabled={!selectedUser && !selectedRoom}
+          className="w-full p-2 rounded"
+          type="text"
+          placeholder="Type a message"
+          value={message}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
+        />
+        <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-slate-500 rounded w-40">
+          Send
+        </button>
+      </div>
     </form>
   );
 };

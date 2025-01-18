@@ -25,11 +25,11 @@ export const Home = () => {
   }, [session]);
 
   return (
-    <div className="flex w-full">
+    <div className="flex w-full h-screen">
       <SelectedChannelProvider>
         <ConversationProvider>
           <NavigationPanel username={username} />
-          <div className="flex flex-col h-screen w-full">
+          <div className="flex flex-col flex-grow overflow-hidden">
             <ChatContainer username={username} />
             <ChatInput username={username} />
           </div>

@@ -213,7 +213,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
           </div>
         </div>
         <div>
-          <h1>Rooms</h1>
+          <h1>Group Chats</h1>
           <div className="p-4 bg-slate-200 rounded">
             {sampleRooms.map((room, idx) => (
               <div key={idx} className="flex w-full justify-between">
