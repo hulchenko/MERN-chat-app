@@ -107,14 +107,21 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const newUserHandler = useCallback(
     (user: User) => {
       // any user connected after host is connected
-      if (!session?.username) return;
-      console.log(`new user: `, user);
-      const existingUsers = [...users];
-      const isUserExist = existingUsers.some((u) => u.username === user.username);
+      if (!session?.username || !user.userID) return;
+
       const self = user.username === session?.username; // support multiple active tabs for the same user
-      if (!isUserExist && !self) {
-        setUsers((prev) => [...prev, user]);
-      }
+      if (self) return;
+
+      setUsers((prev) => {
+        const usersArr = [...prev];
+        const userIdx = usersArr.findIndex((user) => user.userID === user.userID);
+        if (userIdx !== -1) {
+          usersArr[userIdx].connected = true;
+          return usersArr;
+        } else {
+          return [...usersArr, user];
+        }
+      });
     },
     [session, users]
   );
@@ -124,7 +131,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       const usersArr = [...prev];
       const userIdx = usersArr.findIndex((user) => user.userID === userID);
       if (userIdx !== -1) {
-        usersArr.splice(userIdx, 1);
+        usersArr[userIdx].connected = false;
       }
       return usersArr;
     });
@@ -209,7 +216,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
                 }`}
               >
                 {user.username}
-                {user.newMessage && <span className="text-red-500 font-bold border border-red-300 ml-4">new</span>}
+                {user.connected ? <span className="text-green-600 ml-4">Online</span> : <span className="text-red-400 ml-4">Offline</span>}
+                {user.newMessage && <span className="text-red-500 font-bold border border-red-300 ml-4">message</span>}
               </p>
             ))}
           </div>

@@ -4,7 +4,8 @@ export interface User {
   userID: string;
   username: string;
   messages: Message[];
-  newMessage?: boolean;
   rooms: string[];
   roomMessages: Message[];
+  connected: boolean;
+  newMessage?: boolean;
 }

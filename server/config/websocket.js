@@ -48,6 +48,7 @@ const websocketConnect = (server) => {
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
       username: socket.username,
+      connected: true,
     });
     socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
@@ -70,6 +71,7 @@ const websocketConnect = (server) => {
           messages: userMessages,
           rooms: userRooms,
           roomMessages,
+          connected: session.connected,
         });
       });
       console.log("Online count: ", users.length);
@@ -82,6 +84,7 @@ const websocketConnect = (server) => {
         messages: [],
         rooms: [],
         roomMessages: [],
+        connected: true,
       });
     });
 
@@ -135,6 +138,12 @@ const websocketConnect = (server) => {
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
         socket.broadcast.emit("user_disconnect", socket.userID);
+
+        sessionStore.saveSession(socket.sessionID, {
+          userID: socket.userID,
+          username: socket.username,
+          connected: false,
+        });
       }
     });
 
