@@ -5,13 +5,13 @@ import { Room } from "../interface/Room";
 interface SelectedChannelContext {
   selectedUser: User | null;
   selectedRoom: Room | null;
-  setSelectedUser: (user: User) => void;
-  setSelectedRoom: (room: Room) => void;
+  setSelectedUser: (user: User | null) => void;
+  setSelectedRoom: (room: Room | null) => void;
 }
 
 const SelectedChannelContext = createContext<SelectedChannelContext>({
-  selectedUser: { userID: "", username: "", newMessage: false, messages: [] },
-  selectedRoom: { name: "", newMessage: false, messages: [] },
+  selectedUser: { userID: "", username: "", newMessage: false, messages: [], rooms: [], roomMessages: [] },
+  selectedRoom: { name: "", messages: [] },
   setSelectedUser: () => {},
   setSelectedRoom: () => {},
 });

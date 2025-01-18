@@ -19,6 +19,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const [isOnline, setOnline] = useState<boolean>(false);
   const [room, setRoom] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
+  const [userRooms, setUserRooms] = useState<string[]>([]);
 
   const { session, clearSession } = useSession();
   const { selectedUser, selectedRoom, setSelectedUser, setSelectedRoom } = useSelectedChannel();
@@ -26,19 +27,32 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   const navigate = useNavigate();
 
-  const joinRoom = useCallback(
-    (room: Room): void => {
-      socket.emit("join_room", room.name);
-    },
-    [room]
-  );
+  const joinRoom = (room: Room): void => {
+    socket.emit("join_room", room.name);
+    if (!userRooms.includes(room.name)) {
+      setUserRooms((prev) => [...prev, room.name]);
+    }
+    setSelectedRoom(room);
+  };
 
-  const leaveRoom = useCallback(
-    (room: Room): void => {
-      socket.emit("leave_room", room.name);
-    },
-    [room]
-  );
+  const leaveRoom = (room: Room): void => {
+    socket.emit("leave_room", room.name);
+    const roomIdx = userRooms.findIndex((roomName) => roomName === room.name);
+    if (roomIdx !== -1) {
+      setUserRooms((prev) => {
+        const originalArr = [...prev];
+        originalArr.splice(roomIdx, 1);
+        return originalArr;
+      });
+    }
+    setSelectedRoom(null);
+  };
+
+  const clickRoom = (room: Room): void => {
+    if (userRooms.includes(room.name)) {
+      setSelectedRoom(room);
+    }
+  };
 
   const createRoom = (): void => {
     // TODO Mongo POST
@@ -57,12 +71,32 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     [users]
   );
 
+  const restoreGroupConversation = useCallback(
+    (users: User[]) => {
+      const pm = false;
+      if (!users || users.length === 0) return;
+      users.forEach((user) => {
+        user.roomMessages.forEach(({ from, to, content, timestamp }) => {
+          addMessage(from, to, content, timestamp, pm);
+        });
+      });
+    },
+    [users]
+  );
+
   const initialUsersHandler = useCallback(
     (users: User[]) => {
       if (!session?.userID) return;
       // initial users
       console.log(`initial users: `, users);
       restorePrivateConversation(users);
+      restoreGroupConversation(users);
+
+      const currUser = users.find((user) => user.userID === session.userID);
+      if (currUser) {
+        setUserRooms(currUser.rooms);
+      }
+
       const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
       setUsers(usersExcludeSelf);
     },
@@ -184,20 +218,22 @@ export const NavigationPanel = ({ username }: { username: string }) => {
             {sampleRooms.map((room, idx) => (
               <div key={idx} className="flex w-full justify-between">
                 <p
-                  className="p-2 my-2 border border-slate-700 rounded cursor-pointer"
-                  onClick={() => {
-                    setSelectedRoom(room);
-                    // removeNotification(room);
-                  }}
+                  className={`p-2 my-2 border border-slate-700 rounded ${selectedRoom?.name === room.name ? "text-white bg-slate-700" : ""} ${
+                    userRooms.includes(room.name) ? " cursor-pointer bg-slate-400" : ""
+                  }`}
+                  onClick={() => clickRoom(room)}
                 >
                   {room.name}
                 </p>
-                <button className="border border-slate-700 rounded m-2 p-2" onClick={() => joinRoom(room)}>
-                  Join
-                </button>
-                <button className="border border-slate-700 rounded m-2 p-2" onClick={() => leaveRoom(room)}>
-                  Leave
-                </button>
+                {!userRooms.includes(room.name) ? (
+                  <button className="border border-slate-700 rounded m-2 p-2" onClick={() => joinRoom(room)}>
+                    Join
+                  </button>
+                ) : (
+                  <button className="border border-slate-700 rounded m-2 p-2" onClick={() => leaveRoom(room)}>
+                    Leave
+                  </button>
+                )}
               </div>
             ))}
           </div>

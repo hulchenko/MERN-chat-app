@@ -5,4 +5,6 @@ export interface User {
   username: string;
   messages: Message[];
   newMessage?: boolean;
+  rooms: string[];
+  roomMessages: Message[];
 }
