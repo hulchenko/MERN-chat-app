@@ -2,13 +2,11 @@ class SessionStore {
   sessions = {};
 
   findSession(id) {
-    // console.log("Find session: ", this.sessions[id]);
     return this.sessions[id] || null;
   }
 
   saveSession(id, session) {
     this.sessions[id] = session;
-    // console.log("Save session: ", this.sessions[id]);
   }
 
   removeSession(id) {
@@ -16,8 +14,11 @@ class SessionStore {
   }
 
   getAllSessions() {
-    // console.log("All sessions: ", this.sessions);
     return this.sessions;
+  }
+
+  isConnected(username) {
+    return Object.entries(this.sessions).some(([sessionID, body]) => body.username === username);
   }
 }
 

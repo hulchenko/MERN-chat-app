@@ -3,12 +3,14 @@ import { verifyJWT } from "../auth/auth.js";
 import SessionStore from "../sessionStore.js";
 import MessageStore from "../messageStore.js";
 import RoomStore from "../roomStore.js";
+import UserStore from "../userStore.js";
 
 const websocketConnect = (server) => {
   const io = new Server(server);
   const sessionStore = new SessionStore();
   const messageStore = new MessageStore();
   const roomStore = new RoomStore();
+  const userStore = new UserStore();
 
   io.use((socket, next) => {
     try {
@@ -45,6 +47,11 @@ const websocketConnect = (server) => {
   io.on("connection", (socket) => {
     console.log("Websocket connected. ID: ", socket.username);
 
+    userStore.addUser({
+      userID: socket.userID,
+      username: socket.username,
+    });
+
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
       username: socket.username,
@@ -55,25 +62,26 @@ const websocketConnect = (server) => {
 
     socket.on("client_ready", () => {
       // Get session users
-      const users = []; // re-render anew on a fresh connection
-      Object.values(sessionStore.getAllSessions()).forEach((session) => {
-        const userMessages = messageStore.getMessages(session.username);
-        const userRooms = roomStore.getUserRooms(session.username);
+
+      const users = userStore.getAllUsers().map((user) => {
+        const userMessages = messageStore.getMessages(user.username);
+        const userRooms = roomStore.getUserRooms(user.username);
         const roomMessages = [];
         userRooms.forEach((roomName) => {
           const messages = messageStore.getRoomMessages(roomName);
           roomMessages.push(...messages);
         });
 
-        users.push({
-          userID: session.userID,
-          username: session.username,
+        return {
+          userID: user.userID,
+          username: user.username,
           messages: userMessages,
           rooms: userRooms,
           roomMessages,
-          connected: session.connected,
-        });
+          connected: sessionStore.isConnected(user.username),
+        };
       });
+
       console.log("Online count: ", users.length);
       socket.emit("initial_users", users);
 
