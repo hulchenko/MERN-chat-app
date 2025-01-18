@@ -15,7 +15,6 @@ const websocketConnect = (server) => {
         // check cached session
         const session = sessionStore.findSession(sessionID);
         if (session) {
-          console.log("SESSION EXIST: ", session);
           const { username, sessionID, userID } = session;
 
           socket.username = username;
@@ -78,6 +77,29 @@ const websocketConnect = (server) => {
       const message = { content, from: socket.username, to: recipient.username, timestamp };
       socket.to(recipient.userID).emit("private_message", message);
       messageStore.saveMessage(message);
+    });
+
+    // Group messaging
+    socket.on("join_room", (roomName) => {
+      socket.join(roomName);
+      console.log(`USER ${socket.username} joined room: ${roomName}`);
+      socket.to(roomName).emit("user_joined", { username: socket.username, roomName });
+      // sessionStore.saveSession //TODO
+    });
+
+    socket.on("room_message", (data) => {
+      const { content, from, roomName, timestamp } = data;
+      const message = { content, from, to: roomName, timestamp };
+      console.log("ROOM MESSAGE: ", message);
+      socket.to(roomName).emit("room_message", message);
+      // messageStore.saveMessage(message) //TODO
+    });
+
+    socket.on("leave_room", (roomName) => {
+      socket.leave(roomName);
+      console.log(`USER ${socket.username} left room: ${roomName}`);
+      socket.to(roomName).emit("user_left", { username: socket.username, roomName });
+      // sessionStore.saveSession //TODO
     });
 
     socket.on("sign_out", () => {

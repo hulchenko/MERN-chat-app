@@ -2,12 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useConversation } from "../context/ConversationProvider";
-import { useSelectedUser } from "../context/SelectedUserProvider";
+import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import { useSession } from "../context/SessionProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
+import { Room } from "../interface/Room";
 
-const sampleRooms = ["room1", "room2", "room3", "room4"]; // TODO replace
+const sampleRooms = [
+  { name: "room1", messages: [] },
+  { name: "room2", messages: [] },
+  { name: "room3", messages: [] },
+  { name: "room4", messages: [] },
+]; // TODO replace
 
 export const NavigationPanel = ({ username }: { username: string }) => {
   const [isOnline, setOnline] = useState<boolean>(false);
@@ -15,27 +21,36 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   const [users, setUsers] = useState<User[]>([]);
 
   const { session, clearSession } = useSession();
-  const { selectedUser, setSelectedUser } = useSelectedUser();
+  const { selectedUser, selectedRoom, setSelectedUser, setSelectedRoom } = useSelectedChannel();
   const { addMessage, lastMessage } = useConversation();
 
   const navigate = useNavigate();
 
-  const joinRoom = (): void => {
-    if (room && username) {
-      navigate(`/${room}`);
-    }
-  };
+  const joinRoom = useCallback(
+    (room: Room): void => {
+      socket.emit("join_room", room.name);
+    },
+    [room]
+  );
+
+  const leaveRoom = useCallback(
+    (room: Room): void => {
+      socket.emit("leave_room", room.name);
+    },
+    [room]
+  );
 
   const createRoom = (): void => {
     // TODO Mongo POST
   };
 
-  const recreateConversation = useCallback(
+  const restorePrivateConversation = useCallback(
     (users: User[]) => {
+      const pm = true;
       if (!users || users.length === 0) return;
       users.forEach((user) => {
         user.messages.forEach(({ from, to, content, timestamp }) => {
-          addMessage(from, to, content, timestamp);
+          addMessage(from, to, content, timestamp, pm);
         });
       });
     },
@@ -47,7 +62,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       if (!session?.userID) return;
       // initial users
       console.log(`initial users: `, users);
-      recreateConversation(users);
+      restorePrivateConversation(users);
       const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
       setUsers(usersExcludeSelf);
     },
@@ -167,12 +182,24 @@ export const NavigationPanel = ({ username }: { username: string }) => {
           <h1>Rooms</h1>
           <div className="p-4 bg-slate-200 rounded">
             {sampleRooms.map((room, idx) => (
-              <p key={idx} className="p-2 my-2 border border-slate-700 rounded">
-                {room}
-              </p>
+              <div key={idx} className="flex w-full justify-between">
+                <p
+                  className="p-2 my-2 border border-slate-700 rounded cursor-pointer"
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    // removeNotification(room);
+                  }}
+                >
+                  {room.name}
+                </p>
+                <button className="border border-slate-700 rounded m-2 p-2" onClick={() => joinRoom(room)}>
+                  Join
+                </button>
+                <button className="border border-slate-700 rounded m-2 p-2" onClick={() => leaveRoom(room)}>
+                  Leave
+                </button>
+              </div>
             ))}
-            {/* TODO will come from DB */}
-            {/* <button onClick={joinRoom}>Join</button> */}
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import socket from "../socket";
 interface ConversationContext {
   conversation: ConversationMessage;
   lastMessage: Message;
-  addMessage: (from: string, to: string, content: string, timestamp: number) => void;
+  addMessage: (from: string, to: string, content: string, timestamp: number, pm: boolean) => void;
 }
 
 type ConversationMessage = {
@@ -26,8 +26,8 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [conversation, setConversation] = useState<ConversationMessage>({});
   const [lastMessage, setLastMessage] = useState<Message>({ from: "", to: "", content: "", timestamp: 0 });
 
-  const addMessage = useCallback((from: string, to: string, content: string, timestamp: number): void => {
-    const key = generateConversationKey(from, to);
+  const addMessage = useCallback((from: string, to: string, content: string, timestamp: number, pm: boolean): void => {
+    const key = pm ? generateConversationKey(from, to) : to; // use room (to) key for group chats
     const message: Message = { from, content, to, timestamp };
     setConversation((prev) => {
       const conversationArr = { ...prev };
@@ -49,10 +49,31 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     socket.on("private_message", (data: Message) => {
       const { from, to, content, timestamp } = data;
       console.log(`Incoming PM: from: ${from}, to: ${to}, content: ${content}`);
-      addMessage(from, to, content, timestamp); // fires only for receiving socket
+      const pm = true;
+      addMessage(from, to, content, timestamp, pm); // fires only for receiving socket
     });
+    socket.on("room_message", (data: Message) => {
+      const { from, to, content, timestamp } = data;
+      console.log(`Incoming GM: from: ${from}, room: ${to}, content: ${content}`);
+      const pm = false;
+      addMessage(from, to, content, timestamp, pm); // fires only for receiving socket
+    });
+
+    socket.on("user_joined", ({ username, roomName }) => {
+      const content = username + " joined";
+      addMessage("", roomName, content, 0, false);
+    });
+
+    socket.on("user_left", ({ username, roomName }) => {
+      const content = username + " left";
+      addMessage("", roomName, content, 0, false);
+    });
+
     return () => {
       socket.off("private_message");
+      socket.off("room_message");
+      socket.off("user_joined");
+      socket.off("user_left");
     };
   }, []);
 
