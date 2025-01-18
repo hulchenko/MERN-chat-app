@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useState } from "react";
 import { User } from "../interface/User";
 import { Room } from "../interface/Room";
 
@@ -17,8 +17,24 @@ const SelectedChannelContext = createContext<SelectedChannelContext>({
 });
 
 export const SelectedChannelProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedUser, setSelectedUserState] = useState<User | null>(null);
+  const [selectedRoom, setSelectedRoomState] = useState<Room | null>(null);
+
+  const setSelectedUser = useCallback(
+    (user: User | null) => {
+      setSelectedUserState(user);
+      setSelectedRoomState(null);
+    },
+    [selectedUser]
+  );
+
+  const setSelectedRoom = useCallback(
+    (room: Room | null) => {
+      setSelectedRoomState(room);
+      setSelectedUserState(null);
+    },
+    [selectedRoom]
+  );
 
   // useEffect(() => console.log("SELECTED USER: ", selectedUser), [selectedUser]);
 

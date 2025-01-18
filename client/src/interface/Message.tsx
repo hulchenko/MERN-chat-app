@@ -3,4 +3,5 @@ export interface Message {
   to: string;
   content: string;
   timestamp: number;
+  notification?: boolean;
 }

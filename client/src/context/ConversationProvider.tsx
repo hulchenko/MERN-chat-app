@@ -43,6 +43,22 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     setLastMessage({ from, to, content, timestamp });
   }, []);
 
+  const addNotification = useCallback((roomName: string, content: string, timestamp: number) => {
+    const notification = { from: "", to: roomName, content, timestamp, notification: true };
+    console.log("FIRED: ", notification);
+    setConversation((prev) => {
+      const conversationArr = { ...prev };
+      if (conversationArr[roomName]) {
+        conversationArr[roomName] = [...conversationArr[roomName], notification];
+      } else {
+        conversationArr[roomName] = [notification];
+      }
+
+      conversationArr[roomName].sort((curr, next) => curr.timestamp - next.timestamp); // sort by asc timestamp to preserve proper timing on session reload
+      return conversationArr;
+    });
+  }, []);
+
   useEffect(() => console.log("Conversation: ", conversation), [conversation]);
 
   useEffect(() => {
@@ -56,17 +72,19 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
       const { from, to, content, timestamp } = data;
       console.log(`Incoming GM: from: ${from}, room: ${to}, content: ${content}`);
       const pm = false;
-      addMessage(from, to, content, timestamp, pm); // fires only for receiving socket
+      addMessage(from, to, content, timestamp, pm);
     });
 
     socket.on("user_joined", ({ username, roomName }) => {
+      console.log("USER JOINED CLIENT");
       const content = username + " joined";
-      addMessage("", roomName, content, 0, false);
+      addNotification(roomName, content, Date.now());
     });
 
     socket.on("user_left", ({ username, roomName }) => {
+      console.log("USER LEFT CLIENT");
       const content = username + " left";
-      addMessage("", roomName, content, 0, false);
+      addNotification(roomName, content, Date.now());
     });
 
     return () => {
