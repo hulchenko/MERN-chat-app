@@ -52,35 +52,37 @@ const websocketConnect = (server) => {
     socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
-    // Get session users
-    const users = []; // re-render anew on a fresh connection
-    Object.values(sessionStore.getAllSessions()).forEach((session) => {
-      const userMessages = messageStore.getMessages(session.username);
-      const userRooms = roomStore.getUserRooms(session.username);
-      const roomMessages = [];
-      userRooms.forEach((roomName) => {
-        const messages = messageStore.getRoomMessages(roomName);
-        roomMessages.push(...messages);
-      });
+    socket.on("client_ready", () => {
+      // Get session users
+      const users = []; // re-render anew on a fresh connection
+      Object.values(sessionStore.getAllSessions()).forEach((session) => {
+        const userMessages = messageStore.getMessages(session.username);
+        const userRooms = roomStore.getUserRooms(session.username);
+        const roomMessages = [];
+        userRooms.forEach((roomName) => {
+          const messages = messageStore.getRoomMessages(roomName);
+          roomMessages.push(...messages);
+        });
 
-      users.push({
-        userID: session.userID,
-        username: session.username,
-        messages: userMessages,
-        rooms: userRooms,
-        roomMessages,
+        users.push({
+          userID: session.userID,
+          username: session.username,
+          messages: userMessages,
+          rooms: userRooms,
+          roomMessages,
+        });
       });
-    });
-    console.log("Online count: ", users.length);
-    socket.emit("initial_users", users);
+      console.log("Online count: ", users.length);
+      socket.emit("initial_users", users);
 
-    // Notify all connections with new users
-    socket.broadcast.emit("new_user", {
-      userID: socket.userID,
-      username: socket.username,
-      messages: [],
-      rooms: [],
-      roomMessages: [],
+      // Notify all connections with new users
+      socket.broadcast.emit("new_user", {
+        userID: socket.userID,
+        username: socket.username,
+        messages: [],
+        rooms: [],
+        roomMessages: [],
+      });
     });
 
     // Tet-a-tet messaging

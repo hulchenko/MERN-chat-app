@@ -89,6 +89,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       if (!session?.userID) return;
       // initial users
       console.log(`initial users: `, users);
+
       restorePrivateConversation(users);
       restoreGroupConversation(users);
 
@@ -158,6 +159,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   useEffect(() => {
     socket.on("connect", () => {
+      socket.emit("client_ready");
       toast.success("Connected.");
       setOnline(true);
     });
