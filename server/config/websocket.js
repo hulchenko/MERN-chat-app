@@ -13,7 +13,7 @@ const websocketConnect = (server) => {
   const redis = new Redis(REDIS_URI);
   const sessionStore = new SessionStore();
   const messageStore = new MessageStore(redis);
-  const roomStore = new RoomStore();
+  const roomStore = new RoomStore(redis);
 
   io.use((socket, next) => {
     try {
@@ -65,13 +65,8 @@ const websocketConnect = (server) => {
         const users = await Promise.all(
           dbUsers.map(async (user) => {
             const userMessages = await messageStore.getPrivateMessages(user.username);
-            const userRooms = roomStore.getUserRooms(user.username);
-            const roomMessages = [];
-            userRooms.forEach(async (roomName) => {
-              const messages = await messageStore.getRoomMessages(roomName);
-              roomMessages.push(...messages);
-            });
-
+            const userRooms = await roomStore.getUserRooms(user.username);
+            const roomMessages = (await Promise.all(userRooms.map((roomName) => messageStore.getRoomMessages(roomName)))).flat();
             return {
               userID: user.id,
               username: user.username,
@@ -87,7 +82,7 @@ const websocketConnect = (server) => {
         socket.emit("initial_users", users);
       } catch (error) {
         console.error("Error fetching users", error);
-        socket.emit("error", "FAILED SUKA");
+        socket.emit("initial_users", []);
       }
 
       // Notify all connections with new users
@@ -111,11 +106,11 @@ const websocketConnect = (server) => {
     });
 
     // Group messaging
-    socket.on("join_room", (roomName) => {
+    socket.on("join_room", async (roomName) => {
       socket.join(roomName);
       console.log(`USER ${socket.username} joined room: ${roomName}`);
       socket.to(roomName).emit("user_joined", { username: socket.username, roomName });
-      roomStore.saveRoom(socket.username, roomName);
+      await roomStore.saveRoom(socket.username, roomName);
     });
 
     socket.on("room_message", async (data) => {
@@ -126,11 +121,11 @@ const websocketConnect = (server) => {
       await messageStore.saveRoomMessage(roomName, message);
     });
 
-    socket.on("leave_room", (roomName) => {
+    socket.on("leave_room", async (roomName) => {
       socket.leave(roomName);
       console.log(`USER ${socket.username} left room: ${roomName}`);
       socket.to(roomName).emit("user_left", { username: socket.username, roomName });
-      roomStore.removeRoom(socket.username, roomName);
+      await roomStore.removeRoom(socket.username, roomName);
     });
 
     socket.on("sign_out", () => {

@@ -76,13 +76,11 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     });
 
     socket.on("user_joined", ({ username, roomName }) => {
-      console.log("USER JOINED CLIENT");
       const content = username + " joined";
       addNotification(roomName, content, Date.now());
     });
 
     socket.on("user_left", ({ username, roomName }) => {
-      console.log("USER LEFT CLIENT");
       const content = username + " left";
       addNotification(roomName, content, Date.now());
     });

@@ -10,7 +10,7 @@ interface SelectedChannelContext {
 }
 
 const SelectedChannelContext = createContext<SelectedChannelContext>({
-  selectedUser: { userID: "", username: "", newMessage: false, messages: [], rooms: [], roomMessages: [] },
+  selectedUser: { userID: "", username: "", newMessage: false, messages: [], rooms: [], roomMessages: [], connected: false },
   selectedRoom: { name: "", messages: [] },
   setSelectedUser: () => {},
   setSelectedRoom: () => {},

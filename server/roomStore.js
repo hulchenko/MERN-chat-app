@@ -1,28 +1,32 @@
 export default class RoomStore {
-  rooms = {};
+  TTL = 60 * 60 * 24; // 1 day;
 
-  saveRoom(username, roomName) {
-    if (this.rooms[username]) {
-      this.rooms[username].push(roomName);
-    } else {
-      this.rooms[username] = [roomName];
-    }
+  constructor(redisClient) {
+    this.redis = redisClient;
   }
 
-  removeRoom(username, roomName) {
-    if (this.rooms[username]) {
-      const roomIdx = this.rooms[username].findIndex((room) => room === roomName);
-      if (roomIdx !== -1) {
-        this.rooms[username].splice(roomIdx, 1);
-      }
-    }
+  async saveRoom(username, roomName) {
+    const key = `room:${username}`;
+    const room = JSON.stringify(roomName);
+    await this.redis.rpush(key, room);
+    await this.redis.expire(key, this.TTL);
   }
 
-  getUserRooms(username) {
-    return this.rooms[username] || [];
+  async removeRoom(username, roomName) {
+    const key = `room:${username}`;
+    const room = JSON.stringify(roomName);
+    await this.redis.lrem(key, 1, room);
   }
 
-  removeUserRooms(username) {
-    delete this.rooms[username];
+  async getUserRooms(username) {
+    const key = `room:${username}`;
+    const redisRooms = await this.redis.lrange(key, 0, -1);
+    const parsedRooms = redisRooms.map((room) => JSON.parse(room));
+    return parsedRooms;
+  }
+
+  async removeUserRooms(username) {
+    const key = `room:${username}`;
+    await this.redis.del(key);
   }
 }
