@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 
+const MONGO_URI = process.env.MONGO_URI;
+
 const mongoConnect = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect(MONGO_URI, {
       serverSelectionTimeoutMS: 5000, // failed connection timeout after 5 seconds
     });
     mongoose.set("debug", true); // TODO remove
