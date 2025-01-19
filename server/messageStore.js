@@ -1,33 +1,36 @@
 class MessageStore {
-  privateMessages = {};
-  roomMessages = {};
+  TTL = 60 * 60 * 24; // 1 day;
 
-  saveMessage(message) {
-    if (message.from) {
-      if (this.privateMessages[message.from]) {
-        this.privateMessages[message.from].push(message);
-      } else {
-        this.privateMessages[message.from] = [message];
-      }
-    }
+  constructor(redisClient) {
+    this.redis = redisClient;
   }
 
-  getMessages(username) {
-    return this.privateMessages[username] || [];
+  async savePrivateMessage(msg) {
+    const key = `private:${msg.from}`;
+    const message = JSON.stringify(msg);
+    await this.redis.rpush(key, message);
+    await this.redis.expire(key, this.TTL);
   }
 
-  saveRoomMessage(roomName, message) {
-    if (roomName && message) {
-      if (this.roomMessages[roomName]) {
-        this.roomMessages[roomName].push(message);
-      } else {
-        this.roomMessages[roomName] = [message];
-      }
-    }
+  async getPrivateMessages(username) {
+    const key = `private:${username}`;
+    const redisMessages = await this.redis.lrange(key, 0, -1);
+    const parsedMessages = redisMessages?.map((msg) => JSON.parse(msg)) || [];
+    return parsedMessages;
   }
 
-  getRoomMessages(roomName) {
-    return this.roomMessages[roomName] || [];
+  async saveRoomMessage(roomName, msg) {
+    const key = `room:${roomName}`;
+    const message = JSON.stringify(msg);
+    await this.redis.rpush(key, message);
+    await this.redis.expire(key, this.TTL);
+  }
+
+  async getRoomMessages(roomName) {
+    const key = `room:${roomName}`;
+    const redisMessages = await this.redis.lrange(key, 0, -1);
+    const parsedMessages = redisMessages?.map((msg) => JSON.parse(msg)) || [];
+    return parsedMessages;
   }
 }
 

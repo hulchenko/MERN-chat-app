@@ -4,11 +4,15 @@ import SessionStore from "../sessionStore.js";
 import MessageStore from "../messageStore.js";
 import RoomStore from "../roomStore.js";
 import UserStore from "../userStore.js";
+import Redis from "ioredis";
+
+const REDIS_URI = process.env.REDIS_URI;
 
 const websocketConnect = (server) => {
   const io = new Server(server);
+  const redis = new Redis(REDIS_URI);
   const sessionStore = new SessionStore();
-  const messageStore = new MessageStore();
+  const messageStore = new MessageStore(redis);
   const roomStore = new RoomStore();
   const userStore = new UserStore();
 
@@ -56,29 +60,36 @@ const websocketConnect = (server) => {
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
     socket.on("client_ready", async () => {
-      // Get session users
-      const dbUsers = await userStore.getAllDBUsers();
-      const users = dbUsers.map((user) => {
-        const userMessages = messageStore.getMessages(user.username);
-        const userRooms = roomStore.getUserRooms(user.username);
-        const roomMessages = [];
-        userRooms.forEach((roomName) => {
-          const messages = messageStore.getRoomMessages(roomName);
-          roomMessages.push(...messages);
-        });
+      try {
+        // Get session users
+        const dbUsers = await userStore.getAllDBUsers();
+        const users = await Promise.all(
+          dbUsers.map(async (user) => {
+            const userMessages = await messageStore.getPrivateMessages(user.username);
+            const userRooms = roomStore.getUserRooms(user.username);
+            const roomMessages = [];
+            userRooms.forEach(async (roomName) => {
+              const messages = await messageStore.getRoomMessages(roomName);
+              roomMessages.push(...messages);
+            });
 
-        return {
-          userID: user.id,
-          username: user.username,
-          messages: userMessages,
-          rooms: userRooms,
-          roomMessages,
-          connected: sessionStore.isConnected(user.username),
-        };
-      });
+            return {
+              userID: user.id,
+              username: user.username,
+              messages: userMessages,
+              rooms: userRooms,
+              roomMessages,
+              connected: sessionStore.isConnected(user.username),
+            };
+          })
+        );
 
-      console.log("User count: ", users.length);
-      socket.emit("initial_users", users);
+        console.log("User count: ", users.length);
+        socket.emit("initial_users", users);
+      } catch (error) {
+        console.error("Error fetching users", error);
+        socket.emit("error", "FAILED SUKA");
+      }
 
       // Notify all connections with new users
       socket.broadcast.emit("new_connection", {
@@ -92,12 +103,12 @@ const websocketConnect = (server) => {
     });
 
     // Tet-a-tet messaging
-    socket.on("private_message", (data) => {
+    socket.on("private_message", async (data) => {
       const { recipient, content, timestamp } = data;
       console.log(`Private message: Sending '${content}' from ${socket.userID} to ${recipient}`);
       const message = { content, from: socket.username, to: recipient.username, timestamp };
       socket.to(recipient.userID).emit("private_message", message);
-      messageStore.saveMessage(message);
+      await messageStore.savePrivateMessage(message);
     });
 
     // Group messaging
@@ -108,12 +119,12 @@ const websocketConnect = (server) => {
       roomStore.saveRoom(socket.username, roomName);
     });
 
-    socket.on("room_message", (data) => {
+    socket.on("room_message", async (data) => {
       const { content, from, roomName, timestamp } = data;
       const message = { content, from, to: roomName, timestamp };
       console.log("ROOM MESSAGE: ", message);
       socket.to(roomName).emit("room_message", message);
-      messageStore.saveRoomMessage(roomName, message);
+      await messageStore.saveRoomMessage(roomName, message);
     });
 
     socket.on("leave_room", (roomName) => {
