@@ -1,10 +1,10 @@
+import Redis from "ioredis";
 import { Server } from "socket.io";
 import { verifyJWT } from "../auth/auth.js";
-import SessionStore from "../sessionStore.js";
 import MessageStore from "../messageStore.js";
 import RoomStore from "../roomStore.js";
-import UserStore from "../userStore.js";
-import Redis from "ioredis";
+import SessionStore from "../sessionStore.js";
+import { getAllDBUsers } from "./../controllers/userController.js";
 
 const REDIS_URI = process.env.REDIS_URI;
 
@@ -14,7 +14,6 @@ const websocketConnect = (server) => {
   const sessionStore = new SessionStore();
   const messageStore = new MessageStore(redis);
   const roomStore = new RoomStore();
-  const userStore = new UserStore();
 
   io.use((socket, next) => {
     try {
@@ -62,7 +61,7 @@ const websocketConnect = (server) => {
     socket.on("client_ready", async () => {
       try {
         // Get session users
-        const dbUsers = await userStore.getAllDBUsers();
+        const dbUsers = await getAllDBUsers();
         const users = await Promise.all(
           dbUsers.map(async (user) => {
             const userMessages = await messageStore.getPrivateMessages(user.username);

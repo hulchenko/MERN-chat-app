@@ -1,16 +1,6 @@
 import { generateJWT } from "../auth/auth.js";
 import User from "../models/User.js";
 
-// get user
-// create user
-// update user
-// delete user
-// register user
-// user login
-// user logout
-// add friend
-// remove friend
-
 const getUser = async (req, res, next) => {
   try {
     const { username } = req.query;
@@ -65,4 +55,10 @@ const loginUser = async (req, res, next) => {
   }
 };
 
-export { createUser, getUser, loginUser };
+// WebSocket methods
+
+const getAllDBUsers = async () => {
+  return await User.find();
+};
+
+export { createUser, getUser, loginUser, getAllDBUsers };
