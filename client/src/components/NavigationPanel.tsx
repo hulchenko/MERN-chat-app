@@ -171,14 +171,14 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       setOnline(true);
     });
     socket.on("initial_users", (users: User[]) => initialUsersHandler(users));
-    socket.on("new_user", (user: User) => newUserHandler(user));
+    socket.on("new_connection", (user: User) => newUserHandler(user));
     socket.on("user_disconnect", (userID: string) => userDisconnectHandler(userID));
     socket.on("disconnect", () => toast.error("Disconnected."));
 
     return () => {
       socket.off("connect");
       socket.off("initial_users");
-      socket.off("new_user");
+      socket.off("new_connection");
       socket.off("user_disconnect");
       socket.off("disconnect");
     };

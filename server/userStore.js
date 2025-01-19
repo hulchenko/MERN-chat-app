@@ -1,3 +1,5 @@
+import User from "./models/User.js";
+
 class UserStore {
   users = {};
 
@@ -11,6 +13,10 @@ class UserStore {
 
   getAllUsers() {
     return Object.values(this.users);
+  }
+
+  async getAllDBUsers() {
+    return await User.find();
   }
 }
 

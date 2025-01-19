@@ -47,11 +47,6 @@ const websocketConnect = (server) => {
   io.on("connection", (socket) => {
     console.log("Websocket connected. ID: ", socket.username);
 
-    userStore.addUser({
-      userID: socket.userID,
-      username: socket.username,
-    });
-
     sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
       username: socket.username,
@@ -60,10 +55,10 @@ const websocketConnect = (server) => {
     socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
-    socket.on("client_ready", () => {
+    socket.on("client_ready", async () => {
       // Get session users
-
-      const users = userStore.getAllUsers().map((user) => {
+      const dbUsers = await userStore.getAllDBUsers();
+      const users = dbUsers.map((user) => {
         const userMessages = messageStore.getMessages(user.username);
         const userRooms = roomStore.getUserRooms(user.username);
         const roomMessages = [];
@@ -73,7 +68,7 @@ const websocketConnect = (server) => {
         });
 
         return {
-          userID: user.userID,
+          userID: user.id,
           username: user.username,
           messages: userMessages,
           rooms: userRooms,
@@ -82,11 +77,11 @@ const websocketConnect = (server) => {
         };
       });
 
-      console.log("Online count: ", users.length);
+      console.log("User count: ", users.length);
       socket.emit("initial_users", users);
 
       // Notify all connections with new users
-      socket.broadcast.emit("new_user", {
+      socket.broadcast.emit("new_connection", {
         userID: socket.userID,
         username: socket.username,
         messages: [],
