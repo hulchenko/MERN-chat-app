@@ -111,7 +111,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
       setUsers((prev) => {
         const usersArr = [...prev];
-        const userIdx = usersArr.findIndex((user) => user.userID === user.userID);
+        const userIdx = usersArr.findIndex((u) => u.userID === user.userID);
         if (userIdx !== -1) {
           usersArr[userIdx].connected = true;
           return usersArr;

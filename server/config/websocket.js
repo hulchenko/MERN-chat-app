@@ -64,6 +64,7 @@ const websocketConnect = (server) => {
         const dbUsers = await getAllDBUsers();
         const users = await Promise.all(
           dbUsers.map(async (user) => {
+            const isConnected = await sessionStore.isConnected(user.username);
             const userMessages = await messageStore.getPrivateMessages(user.username);
             const userRooms = await roomStore.getUserRooms(user.username);
             const roomMessages = (
@@ -80,7 +81,7 @@ const websocketConnect = (server) => {
               messages: userMessages,
               rooms: userRooms,
               roomMessages,
-              connected: await sessionStore.isConnected(user.username),
+              connected: isConnected,
             };
           })
         );
@@ -91,16 +92,16 @@ const websocketConnect = (server) => {
         console.error("Error fetching users", error);
         socket.emit("initial_users", []);
       }
+    });
 
-      // Notify all connections with new users
-      socket.broadcast.emit("new_connection", {
-        userID: socket.userID,
-        username: socket.username,
-        messages: [],
-        rooms: [],
-        roomMessages: [],
-        connected: true,
-      });
+    // Notify all connections with new users
+    socket.broadcast.emit("new_connection", {
+      userID: socket.userID,
+      username: socket.username,
+      messages: [],
+      rooms: [],
+      roomMessages: [],
+      connected: true,
     });
 
     // Tet-a-tet messaging
@@ -136,28 +137,21 @@ const websocketConnect = (server) => {
 
     socket.on("sign_out", async () => {
       // remove user in the session store
-      await sessionStore.removeSession(socket.sessionID);
-      socket.signout = true;
       socket.disconnect();
+      console.log("User signed out: ", socket.username);
       socket.broadcast.emit("user_disconnect", socket.userID);
+      await sessionStore.removeSession(socket.sessionID);
     });
 
     socket.on("disconnect", async () => {
-      const isSignedOut = socket.signout;
-      if (isSignedOut) return; // skip storing session
-
       // preserve user in the session store
       const userActiveSockets = await io.in(socket.userID).fetchSockets(); // same user, different browsers/devices/tabs
       const isDisconnected = userActiveSockets.length === 0;
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
+        socket.disconnect();
         socket.broadcast.emit("user_disconnect", socket.userID);
-
-        await sessionStore.saveSession(socket.sessionID, {
-          userID: socket.userID,
-          username: socket.username,
-          connected: false,
-        });
+        await sessionStore.removeSession(socket.sessionID);
       }
     });
 
