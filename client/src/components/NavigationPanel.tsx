@@ -166,7 +166,6 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   useEffect(() => {
     socket.on("connect", () => {
-      socket.emit("client_ready");
       toast.success("Connected.");
       setOnline(true);
     });
@@ -182,7 +181,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       socket.off("user_disconnect");
       socket.off("disconnect");
     };
-  }, [socket, initialUsersHandler, newUserHandler, userDisconnectHandler]);
+  }, [initialUsersHandler, newUserHandler, userDisconnectHandler]);
 
   useEffect(() => {
     // display notification icon for new messages

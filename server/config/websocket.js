@@ -11,18 +11,18 @@ const REDIS_URI = process.env.REDIS_URI;
 const websocketConnect = (server) => {
   const io = new Server(server);
   const redis = new Redis(REDIS_URI);
-  const sessionStore = new SessionStore();
+  const sessionStore = new SessionStore(redis);
   const messageStore = new MessageStore(redis);
   const roomStore = new RoomStore(redis);
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const sessionID = socket.handshake.auth.sessionID;
       if (sessionID) {
         // check cached session
-        const session = sessionStore.findSession(sessionID);
+        const session = await sessionStore.findSession(sessionID);
         if (session) {
-          const { username, sessionID, userID } = session;
+          const { username, userID } = session;
 
           socket.username = username;
           socket.sessionID = sessionID;
@@ -33,8 +33,7 @@ const websocketConnect = (server) => {
       }
       const token = socket.handshake.auth.token;
       const decodedToken = verifyJWT(token); // {username, id}
-      const { id, username } = decodedToken;
-      if (!id || !username) {
+      if (!decodedToken.id || !decodedToken.username) {
         return next(new Error("User is not authenticated.")); // this is caught by "connect_error" in client-side
       }
       socket.username = username;
@@ -47,10 +46,10 @@ const websocketConnect = (server) => {
     }
   });
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     console.log("Websocket connected. ID: ", socket.username);
 
-    sessionStore.saveSession(socket.sessionID, {
+    await sessionStore.saveSession(socket.sessionID, {
       userID: socket.userID,
       username: socket.username,
       connected: true,
@@ -59,6 +58,7 @@ const websocketConnect = (server) => {
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
     socket.on("client_ready", async () => {
+      console.log("CLIENT READY FIRED!");
       try {
         // Get session users
         const dbUsers = await getAllDBUsers();
@@ -73,7 +73,7 @@ const websocketConnect = (server) => {
               messages: userMessages,
               rooms: userRooms,
               roomMessages,
-              connected: sessionStore.isConnected(user.username),
+              connected: await sessionStore.isConnected(user.username),
             };
           })
         );
@@ -128,9 +128,9 @@ const websocketConnect = (server) => {
       await roomStore.removeRoom(socket.username, roomName);
     });
 
-    socket.on("sign_out", () => {
+    socket.on("sign_out", async () => {
       // remove user in the session store
-      sessionStore.removeSession(socket.sessionID);
+      await sessionStore.removeSession(socket.sessionID);
       socket.signout = true;
       socket.disconnect();
       socket.broadcast.emit("user_disconnect", socket.userID);
@@ -147,7 +147,7 @@ const websocketConnect = (server) => {
         console.log("User disconnected: ", socket.username);
         socket.broadcast.emit("user_disconnect", socket.userID);
 
-        sessionStore.saveSession(socket.sessionID, {
+        await sessionStore.saveSession(socket.sessionID, {
           userID: socket.userID,
           username: socket.username,
           connected: false,

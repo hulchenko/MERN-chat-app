@@ -49,6 +49,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       const { userID, username, sessionID } = socketSession;
       if (userID && username && sessionID) {
         setSession({ userID, username, sessionID });
+        socket.emit("client_ready");
       }
     });
 

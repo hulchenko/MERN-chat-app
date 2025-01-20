@@ -30,7 +30,6 @@ class MessageStore {
     const key = `roomMessage:${roomName}`;
     const redisMessages = await this.redis.lrange(key, 0, -1);
     const parsedMessages = redisMessages?.map((msg) => JSON.parse(msg)) || [];
-    // console.log("MESSAGES FOR: ", roomName, parsedMessages);
     return parsedMessages;
   }
 }
