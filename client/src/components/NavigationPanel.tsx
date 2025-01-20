@@ -72,13 +72,10 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   );
 
   const restoreGroupConversation = useCallback(
-    (users: User[]) => {
+    (user: User) => {
       const pm = false;
-      if (!users || users.length === 0) return;
-      users.forEach((user) => {
-        user.roomMessages.forEach(({ from, to, content, timestamp }) => {
-          addMessage(from, to, content, timestamp, pm);
-        });
+      user.roomMessages.forEach(({ from, to, content, timestamp }) => {
+        addMessage(from, to, content, timestamp, pm);
       });
     },
     [users]
@@ -91,11 +88,11 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       console.log(`initial users: `, users);
 
       restorePrivateConversation(users);
-      restoreGroupConversation(users);
 
       const currUser = users.find((user) => user.userID === session.userID);
       if (currUser) {
         setUserRooms(currUser.rooms);
+        restoreGroupConversation(currUser);
       }
 
       const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);

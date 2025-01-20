@@ -59,7 +59,6 @@ const websocketConnect = (server) => {
     socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
     socket.on("client_ready", async () => {
-      console.log("CLIENT READY FIRED!");
       try {
         // Get session users
         const dbUsers = await getAllDBUsers();
@@ -67,7 +66,14 @@ const websocketConnect = (server) => {
           dbUsers.map(async (user) => {
             const userMessages = await messageStore.getPrivateMessages(user.username);
             const userRooms = await roomStore.getUserRooms(user.username);
-            const roomMessages = (await Promise.all(userRooms.map((roomName) => messageStore.getRoomMessages(roomName)))).flat();
+            const roomMessages = (
+              await Promise.all(
+                userRooms.map((roomName) => {
+                  socket.join(roomName); // reconnect on reload
+                  return messageStore.getRoomMessages(roomName);
+                })
+              )
+            ).flat();
             return {
               userID: user.id,
               username: user.username,
@@ -117,7 +123,6 @@ const websocketConnect = (server) => {
     socket.on("room_message", async (data) => {
       const { content, from, roomName, timestamp } = data;
       const message = { content, from, to: roomName, timestamp };
-      console.log("ROOM MESSAGE: ", message);
       socket.to(roomName).emit("room_message", message);
       await messageStore.saveRoomMessage(roomName, message);
     });
