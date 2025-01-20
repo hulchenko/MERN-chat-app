@@ -33,7 +33,8 @@ const websocketConnect = (server) => {
       }
       const token = socket.handshake.auth.token;
       const decodedToken = verifyJWT(token); // {username, id}
-      if (!decodedToken.id || !decodedToken.username) {
+      const { id, username } = decodedToken;
+      if (!id || !username) {
         return next(new Error("User is not authenticated.")); // this is caught by "connect_error" in client-side
       }
       socket.username = username;

@@ -37,7 +37,7 @@ class SessionStore {
       if (sessionKey) {
         const redisSession = await this.redis.get(sessionKey);
         const parsedSession = JSON.parse(redisSession);
-        if (parsedSession.username === username && parsedSession.connected === "true") {
+        if (parsedSession.username === username) {
           return true;
         }
       }
