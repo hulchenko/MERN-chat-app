@@ -7,22 +7,19 @@ export default class RoomStore {
 
   async saveRoom(username, roomName) {
     const key = `room:${username}`;
-    const room = JSON.stringify(roomName);
-    await this.redis.rpush(key, room);
+    await this.redis.rpush(key, roomName);
     await this.redis.expire(key, this.TTL);
   }
 
   async removeRoom(username, roomName) {
     const key = `room:${username}`;
-    const room = JSON.stringify(roomName);
-    await this.redis.lrem(key, 1, room);
+    await this.redis.lrem(key, 1, roomName);
   }
 
   async getUserRooms(username) {
     const key = `room:${username}`;
-    const redisRooms = await this.redis.lrange(key, 0, -1);
-    const parsedRooms = redisRooms.map((room) => JSON.parse(room));
-    return parsedRooms;
+    const rooms = await this.redis.lrange(key, 0, -1);
+    return rooms;
   }
 
   async removeUserRooms(username) {
