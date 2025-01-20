@@ -5,7 +5,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
   const { selectedUser, selectedRoom } = useSelectedChannel();
   const { conversation } = useConversation();
 
-  const conversationKey = selectedUser ? generateConversationKey(username, selectedUser?.username || "") : selectedRoom?.name || ""; // TODO unselect user/room on focus switch
+  const conversationKey = selectedUser ? generateConversationKey(username, selectedUser?.username || "") : selectedRoom?.name || "";
   const messages = conversation[conversationKey];
 
   return (
