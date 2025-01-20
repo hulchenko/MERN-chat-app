@@ -3,12 +3,12 @@ import { Session } from "../interface/Session";
 import socket from "../socket";
 
 interface SessionContext {
-  session: Session | null;
+  session: Session | null | undefined;
   clearSession: () => void;
 }
 
 const SessionContext = createContext<SessionContext>({
-  session: null,
+  session: undefined,
   clearSession: () => {},
 });
 
@@ -19,7 +19,7 @@ enum LocalStorage {
 }
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
-  const [session, setSessionState] = useState<Session | null>(null);
+  const [session, setSessionState] = useState<Session | undefined | null>(undefined);
 
   const setSession = useCallback((session: Session) => {
     setSessionState(session);
@@ -41,6 +41,8 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     const sessionID = localStorage.getItem(LocalStorage.sessionID);
     if (userID && username && sessionID) {
       setSession({ userID, username, sessionID });
+    } else {
+      setSessionState(null); // UI had no token from backend
     }
   }, []);
 
