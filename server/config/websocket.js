@@ -32,8 +32,11 @@ const websocketConnect = (server) => {
         }
       }
       const token = socket.handshake.auth.token;
-      const decodedToken = verifyJWT(token); // {username, id}
-      const { id, username } = decodedToken;
+      if (!token) {
+        return next(new Error("Authentication token is missing."));
+      }
+      const payload = verifyJWT(token); // {username, id}
+      const { id, username } = payload;
       if (!id || !username) {
         return next(new Error("User is not authenticated.")); // this is caught by "connect_error" in client-side
       }
@@ -43,7 +46,7 @@ const websocketConnect = (server) => {
 
       next();
     } catch (error) {
-      return next(new Error("Authentication error."));
+      return next(new Error(error?.message || "Authentication error."));
     }
   });
 

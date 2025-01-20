@@ -24,7 +24,7 @@ const getUser = async (req, res, next) => {
 
 const createUser = async (username, password) => {
   if (!username || !password) {
-    throw Error("All fields are required: username, password.");
+    throw new Error("All fields are required: username, password.");
   }
 
   const newUser = {
