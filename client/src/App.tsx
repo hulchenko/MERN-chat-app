@@ -27,6 +27,11 @@ export const App = () => {
       console.error(err);
       toastError(err.message);
     });
+    socket.on("auth_error", (err) => {
+      signOut();
+      console.error(err);
+      toastError(err.message);
+    });
 
     return () => {
       socket.off("connect_error");

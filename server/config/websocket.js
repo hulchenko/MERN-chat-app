@@ -160,7 +160,13 @@ const websocketConnect = (server) => {
 
     socket.onAny((event, ...args) => {
       // listen to all events
-      console.log("SOCKET: ", event, args);
+      console.log("Socket event: ", event, args);
+      try {
+        const token = socket?.sessionID;
+        verifyJWT(token);
+      } catch (error) {
+        socket.emit("auth_error", { message: error.message || "Authentication failed." });
+      }
     });
   });
 };
