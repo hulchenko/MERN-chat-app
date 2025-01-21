@@ -49,7 +49,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     }
   };
 
-  const createRoom = useCallback(async (name: string): Promise<RoomResponse> => {
+  const createRoom = useCallback(async (name: string): Promise<void> => {
     try {
       const response = await fetch("/api/room", {
         method: "POST",
@@ -62,8 +62,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         const error = await response.json();
         throw error;
       }
-      const data = await response.json();
-      return data;
+      const { data } = await response.json();
+      setRoomList((prev) => [...prev, data]);
     } catch (error: Response | any) {
       console.error(error.message);
       return error;
