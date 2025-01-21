@@ -1,5 +1,5 @@
 class SessionStore {
-  TTL = 60 * 60 * 24; // 1 day; //TODO review how it can be extended
+  TTL = 60 * 60 * 24;
 
   constructor(redisClient) {
     this.redis = redisClient;

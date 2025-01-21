@@ -39,10 +39,9 @@ const createUser = async (username, password) => {
 const loginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
+    let user = await User.findOne({ username });
     if (!user) {
-      const user = await createUser(username, password);
-      return res.status(201).json({ error: false, username: user.username });
+      user = await createUser(username, password);
     }
     const isValidPwd = await comparePwd(password, user.password);
     if (!isValidPwd) {
