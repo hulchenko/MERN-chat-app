@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../socket";
-
-interface Response {
-  error: boolean;
-  token: string;
-  message: string;
-}
+import { AuthResponse } from "../interface/Response";
 
 export const Login = () => {
   const [username, setUsername] = useState("");
@@ -14,7 +9,7 @@ export const Login = () => {
   const [authError, setAuthError] = useState("");
   const navigate = useNavigate();
 
-  const authenticate = async (): Promise<Response> => {
+  const authenticate = async (): Promise<AuthResponse> => {
     try {
       const response = await fetch("/api/user/login", {
         method: "POST",

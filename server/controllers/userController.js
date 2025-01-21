@@ -58,7 +58,12 @@ const loginUser = async (req, res, next) => {
 // WebSocket methods
 
 const getAllDBUsers = async () => {
-  return await User.find();
+  try {
+    return await User.find();
+  } catch (error) {
+    console.log("getAllDBUsers error: ", error);
+    next(error);
+  }
 };
 
 export { createUser, getUser, loginUser, getAllDBUsers };

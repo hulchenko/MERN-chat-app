@@ -7,19 +7,14 @@ import { useSession } from "../context/SessionProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
 import { Room } from "../interface/Room";
-
-const sampleRooms = [
-  { name: "room1", messages: [] },
-  { name: "room2", messages: [] },
-  { name: "room3", messages: [] },
-  { name: "room4", messages: [] },
-]; // TODO replace
+import { RoomResponse } from "../interface/Response";
 
 export const NavigationPanel = ({ username }: { username: string }) => {
   const [isOnline, setOnline] = useState<boolean>(false);
-  const [room, setRoom] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
   const [userRooms, setUserRooms] = useState<string[]>([]);
+  const [roomList, setRoomList] = useState<Room[]>([]);
+  const [roomName, setRoomName] = useState<string>("");
 
   const { session, clearSession } = useSession();
   const { selectedUser, selectedRoom, setSelectedUser, setSelectedRoom } = useSelectedChannel();
@@ -54,9 +49,41 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     }
   };
 
-  const createRoom = (): void => {
-    // TODO Mongo POST
-  };
+  const createRoom = useCallback(async (name: string): Promise<RoomResponse> => {
+    try {
+      const response = await fetch("/api/room", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
+      const data = await response.json();
+      return data;
+    } catch (error: Response | any) {
+      console.error(error.message);
+      return error;
+    }
+  }, []);
+
+  const getRooms = useCallback(async (): Promise<void> => {
+    try {
+      const response = await fetch("/api/room");
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
+      const { data } = await response.json();
+      setRoomList(data);
+    } catch (error: Response | any) {
+      console.error(error.message);
+      return error;
+    }
+  }, [roomList]);
 
   const restorePrivateConversation = useCallback(
     (users: User[]) => {
@@ -190,6 +217,10 @@ export const NavigationPanel = ({ username }: { username: string }) => {
     }
   }, [lastMessage, session]);
 
+  useEffect(() => {
+    getRooms();
+  }, []);
+
   return (
     <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen gap-2">
       <h3 className="my-10 text-3xl capitalize">Hi, {username}</h3>
@@ -221,7 +252,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         <div>
           <h1>Group Chats</h1>
           <div className="p-4 bg-slate-200 rounded">
-            {sampleRooms.map((room, idx) => (
+            {roomList.length === 0 && <p className="italic text-gray-400">Nothing here yet</p>}
+            {roomList?.map((room, idx) => (
               <div key={idx} className="flex w-full justify-between">
                 <p
                   className={`p-2 my-2 border border-slate-700 rounded ${selectedRoom?.name === room.name ? "text-white bg-slate-700" : ""} ${
@@ -245,8 +277,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
           </div>
         </div>
       </div>
-      <input type="text" placeholder="Room name..." onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoom(e.target.value)} />
-      <button className="border border-slate-400 p-2" onClick={createRoom}>
+      <input type="text" placeholder="Room name..." onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomName(e.target.value)} />
+      <button className="border border-slate-400 p-2" onClick={() => createRoom(roomName)}>
         Create
       </button>
       <hr />
