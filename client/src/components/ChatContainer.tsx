@@ -1,5 +1,6 @@
 import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import { generateConversationKey, useConversation } from "../context/ConversationProvider";
+import { useEffect, useRef } from "react";
 
 export const ChatContainer = ({ username }: { username: string }) => {
   const { selectedUser, selectedRoom } = useSelectedChannel();
@@ -7,6 +8,13 @@ export const ChatContainer = ({ username }: { username: string }) => {
 
   const conversationKey = selectedUser ? generateConversationKey(username, selectedUser?.username || "") : selectedRoom?.name || "";
   const messages = conversation[conversationKey];
+  const messageRef = useRef<null | HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messageRef.current) {
+      messageRef.current.scrollIntoView();
+    }
+  }, [conversation]);
 
   return (
     <div className="border border-blue-500 flex-grow flex flex-col overflow-hidden">
@@ -21,6 +29,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
                 </div>
               ) : (
                 <div
+                  ref={messageRef}
                   key={idx}
                   className={`border border-slate-500 bg-slate-400 my-4 rounded-3xl p-4 max-w-96 break-words ${
                     msg.from === username ? "ml-auto rounded-br-none bg-blue-400" : "rounded-bl-none"

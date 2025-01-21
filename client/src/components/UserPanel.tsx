@@ -95,13 +95,18 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
               setSelectedUser(user);
               removeNotification(user);
             }}
-            className={`p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
+            className={`relative p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
               selectedUser?.username === user.username ? "bg-slate-700 text-white" : ""
             }`}
           >
             {user.username}
             {user.connected ? <span className="text-green-600 ml-4">Online</span> : <span className="text-red-400 ml-4">Offline</span>}
-            {user.newMessage && <span className="text-red-500 font-bold border border-red-300 ml-4">message</span>}
+            {user.newMessage && (
+              <span className="absolute top-0 right-0 flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-sky-500"></span>
+              </span>
+            )}
           </p>
         ))}
       </div>
