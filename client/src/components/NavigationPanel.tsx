@@ -68,7 +68,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         restoreGroupConversation(currUser);
       }
 
-      const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID);
+      const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID).sort((user) => (user.connected ? -1 : 1));
       setUsers(usersExcludeSelf);
     },
     [session]

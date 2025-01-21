@@ -21,9 +21,9 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
         const userIdx = usersArr.findIndex((u) => u.userID === user.userID);
         if (userIdx !== -1) {
           usersArr[userIdx].connected = true;
-          return usersArr;
+          return usersArr.sort((user) => (user.connected ? -1 : 1));
         } else {
-          return [...usersArr, user];
+          return [...usersArr, user].sort((user) => (user.connected ? -1 : 1));
         }
       });
     },
@@ -37,7 +37,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
       if (userIdx !== -1) {
         usersArr[userIdx].connected = false;
       }
-      return usersArr;
+      return usersArr.sort((user) => (user.connected ? -1 : 1));
     });
   }, []);
 
@@ -85,7 +85,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
 
   return (
     <div>
-      <h1>Online users</h1>
+      <h1>Private Chats</h1>
       <div className="p-4 bg-slate-200 rounded">
         {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
         {users.map((user) => (

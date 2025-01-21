@@ -53,13 +53,18 @@ const websocketConnect = (server) => {
   io.on("connection", async (socket) => {
     console.log("Websocket connected. ID: ", socket.username);
 
-    await sessionStore.saveSession(socket.sessionID, {
-      userID: socket.userID,
-      username: socket.username,
-      connected: true,
-    });
-    socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
-    socket.join(socket.userID); // overwrite default socket.join(socket.id)
+    try {
+      await sessionStore.saveSession(socket.sessionID, {
+        userID: socket.userID,
+        username: socket.username,
+        connected: true,
+      });
+      socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
+      socket.join(socket.userID); // overwrite default socket.join(socket.id)
+    } catch (error) {
+      console.error("Failed to initialize session: ", error);
+      socket.emit("auth_error", { message: "Failed to establish session." });
+    }
 
     socket.on("client_ready", async () => {
       try {
