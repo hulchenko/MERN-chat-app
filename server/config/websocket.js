@@ -29,6 +29,9 @@ const websocketConnect = (server) => {
           socket.userID = userID;
 
           next();
+        } else {
+          // clean up stale sessions
+          await sessionStore.removeSession(sessionID);
         }
       }
       const token = socket.handshake.auth.token;
