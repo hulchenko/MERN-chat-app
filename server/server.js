@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import mongoConnect from "./config/db.js";
 import websocketConnect from "./config/websocket.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import roomRoutes from "./routes/roomRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 const PORT = 5000;
@@ -20,6 +21,7 @@ app.use(express.json({ extended: true }));
 
 // Routes
 app.use("/api/user", userRoutes);
+app.use("/api/room", roomRoutes);
 
 // Global error handler
 app.use(errorHandler);
