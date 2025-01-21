@@ -1,12 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import "./index.css";
 import { App } from "./App.tsx";
-import { NotFound } from "./pages/NotFound.tsx";
+import { SessionProvider } from "./context/SessionProvider.tsx";
+import "./index.css";
 import { Home } from "./pages/Home.tsx";
 import { Login } from "./pages/Login.tsx";
-import { SessionProvider } from "./context/SessionProvider.tsx";
+import { NotFound } from "./pages/NotFound.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -17,9 +17,6 @@ const router = createBrowserRouter(
     </Route>
   )
 );
-
-// TODO <BrowserRouter></BrowserRouter>
-// TODO simple routes
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

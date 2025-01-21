@@ -1,4 +1,4 @@
-import { generateJWT } from "../auth/auth.js";
+import { generateJWT, encryptPwd, comparePwd } from "../auth/auth.js";
 import User from "../models/User.js";
 
 const getUser = async (req, res, next) => {
@@ -29,7 +29,7 @@ const createUser = async (username, password) => {
 
   const newUser = {
     username,
-    password: password, // TODO this will need to be encrypted with salt()
+    password: await encryptPwd(password),
   };
 
   const user = await User.create(newUser);
@@ -44,7 +44,8 @@ const loginUser = async (req, res, next) => {
       const user = await createUser(username, password);
       return res.status(201).json({ error: false, username: user.username });
     }
-    if (password !== user.password) {
+    const isValidPwd = await comparePwd(password, user.password);
+    if (!isValidPwd) {
       return res.status(400).json({ error: true, message: "Incorrect password." });
     }
     const token = generateJWT(user);
