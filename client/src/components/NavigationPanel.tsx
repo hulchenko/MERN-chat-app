@@ -7,7 +7,7 @@ import { useSession } from "../context/SessionProvider";
 import { User } from "../interface/User";
 import socket from "../socket";
 import { Room } from "../interface/Room";
-import { RoomResponse } from "../interface/Response";
+import { removeSpaces } from "../utils/format";
 
 export const NavigationPanel = ({ username }: { username: string }) => {
   const [isOnline, setOnline] = useState<boolean>(false);
@@ -51,12 +51,15 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   const createRoom = useCallback(async (name: string): Promise<void> => {
     try {
+      const roomName = {
+        name: removeSpaces(name),
+      };
       const response = await fetch("/api/room", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(roomName),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -223,7 +226,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
 
   return (
     <div className="border border-green-600 flex flex-col w-1/6 p-4 h-screen gap-2">
-      <h3 className="my-10 text-3xl capitalize">Hi, {username}</h3>
+      <h3 className="my-10 text-3xl">Hi, {username}</h3>
       <p>Status: {isOnline ? <span className="text-green-600">Online</span> : <span className="text-red-400">Offline</span>}</p>
       <hr />
       <div className="flex flex-col h-full justify-between">

@@ -12,9 +12,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
     <div className="border border-blue-500 flex-grow flex flex-col overflow-hidden">
       {(selectedUser || selectedRoom) && messages && (
         <>
-          <h5 className="py-4 bg-slate-600 text-white text-lg font-bold flex w-full justify-center capitalize">
-            {selectedUser?.username || selectedRoom?.name}
-          </h5>
+          <h5 className="py-4 bg-slate-600 text-white text-lg font-bold flex w-full justify-center">{selectedUser?.username || selectedRoom?.name}</h5>
           <div id="chat-block" className="flex-grow overflow-y-auto px-12">
             {messages?.map((msg, idx) =>
               msg.notification ? (

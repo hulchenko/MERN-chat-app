@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import socket from "../socket";
 import { AuthResponse } from "../interface/Response";
+import { removeSpaces } from "../utils/format";
 
 export const Login = () => {
   const [username, setUsername] = useState("");
@@ -11,12 +12,16 @@ export const Login = () => {
 
   const authenticate = async (): Promise<AuthResponse> => {
     try {
+      const credentials = {
+        username: removeSpaces(username),
+        password,
+      };
       const response = await fetch("/api/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(credentials),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -30,7 +35,7 @@ export const Login = () => {
     }
   };
 
-  const submitHandler = async (e: React.FormEvent) => {
+  const submitHandler = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     const { error, message, token } = await authenticate();
     if (error) {
@@ -55,7 +60,7 @@ export const Login = () => {
             autoComplete="on"
             minLength={4}
             maxLength={20}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value.trim().toLowerCase())}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
           />
           <h3>Password:</h3>
           <input
