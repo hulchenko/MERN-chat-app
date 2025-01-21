@@ -65,7 +65,7 @@ const websocketConnect = (server) => {
       try {
         // Get session users
         const dbUsers = await getAllDBUsers();
-        const users = await Promise.all(
+        const data = await Promise.all(
           dbUsers.map(async (user) => {
             const isConnected = await sessionStore.isConnected(user.username);
             const userMessages = await messageStore.getPrivateMessages(user.username);
@@ -89,11 +89,11 @@ const websocketConnect = (server) => {
           })
         );
 
-        console.log("User count: ", users.length);
-        socket.emit("initial_users", users);
+        console.log("User count: ", dbUsers.length);
+        socket.emit("initial_data", data);
       } catch (error) {
         console.error("Error fetching users", error);
-        socket.emit("initial_users", []);
+        socket.emit("initial_data", []);
       }
     });
 
