@@ -3,8 +3,8 @@ import { Session } from "./Session";
 import { User } from "./User";
 
 interface UserPanelProps {
-  users: User[];
-  setUsers: (users: React.SetStateAction<User[]>) => void;
+  users: User[] | null;
+  setUsers: (users: React.SetStateAction<User[] | null>) => void;
   session: Session | null | undefined;
   socket: Socket;
 }

@@ -11,7 +11,7 @@ import { RoomPanelProps, UserPanelProps } from "../interface/Props";
 
 export const NavigationPanel = ({ username }: { username: string }) => {
   const [isOnline, setOnline] = useState<boolean>(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[] | null>(null);
   const [userRooms, setUserRooms] = useState<string[]>([]);
 
   const { session, clearSession } = useSession();
@@ -103,10 +103,8 @@ export const NavigationPanel = ({ username }: { username: string }) => {
       <p>Status: {isOnline ? <span className="text-green-600">Online</span> : <span className="text-red-400">Offline</span>}</p>
       <hr />
       <div className="flex flex-col h-full justify-between">
-        <div>
-          <UserPanel {...userPanelProps} />
-          <RoomPanel {...roomPanelProps} />
-        </div>
+        <UserPanel {...userPanelProps} />
+        <RoomPanel {...roomPanelProps} />
       </div>
       <hr />
       <button className="border border-red-400 p-2" onClick={signOut}>

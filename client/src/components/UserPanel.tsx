@@ -3,6 +3,7 @@ import { useConversation } from "../context/ConversationProvider";
 import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import { UserPanelProps } from "../interface/Props";
 import { User } from "../interface/User";
+import { Loader } from "./Loader";
 
 export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) => {
   const { lastMessage } = useConversation();
@@ -86,9 +87,10 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
   return (
     <div>
       <h1>Private Chats</h1>
-      <div className="p-4 bg-slate-200 rounded">
-        {users.length === 0 && <p className="italic text-gray-400">No users online</p>}
-        {users.map((user) => (
+      <div className="p-4 bg-slate-200 rounded flex-grow flex flex-col overflow-auto h-96">
+        {!users && <Loader />}
+        {users?.length === 0 && <p className="italic text-gray-400">No users online</p>}
+        {users?.map((user) => (
           <p
             key={user.userID}
             onClick={() => {

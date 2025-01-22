@@ -3,9 +3,10 @@ import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import { RoomPanelProps } from "../interface/Props";
 import { Room } from "../interface/Room";
 import { removeSpaces } from "../utils/format";
+import { Loader } from "./Loader";
 
 export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) => {
-  const [roomList, setRoomList] = useState<Room[]>([]);
+  const [roomList, setRoomList] = useState<Room[] | null>(null);
   const [roomName, setRoomName] = useState<string>("");
   const { selectedRoom, setSelectedRoom } = useSelectedChannel();
 
@@ -53,7 +54,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
         throw error;
       }
       const { data } = await response.json();
-      setRoomList((prev) => [...prev, data]);
+      setRoomList((prev) => [...(prev || []), data]);
     } catch (error: Response | any) {
       console.error(error.message);
       return error;
@@ -82,8 +83,9 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
   return (
     <div>
       <h1>Group Chats</h1>
-      <div className="p-4 bg-slate-200 rounded">
-        {roomList.length === 0 && <p className="italic text-gray-400">Nothing here yet</p>}
+      <div className="p-4 bg-slate-200 rounded overflow-auto h-96">
+        {!roomList && <Loader />}
+        {roomList?.length === 0 && <p className="italic text-gray-400">Nothing here yet</p>}
         {roomList?.map((room, idx) => (
           <div key={idx} className="flex w-full justify-between">
             <p
