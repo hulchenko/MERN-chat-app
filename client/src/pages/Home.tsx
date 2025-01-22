@@ -6,6 +6,7 @@ import { SelectedChannelProvider } from "../context/SelectedChannelProvider";
 import { ConversationProvider } from "../context/ConversationProvider";
 import { useSession } from "../context/SessionProvider";
 import socket from "../socket";
+import { Loader } from "../components/Loader";
 
 export const Home = () => {
   const { session } = useSession();
@@ -13,7 +14,6 @@ export const Home = () => {
 
   useEffect(() => {
     if (session) {
-      console.log("SESSION FIRED", session);
       const { username, sessionID: token } = session; // after token is decoded it becomes sessionID on the server side
 
       // reconnect socket after page reload
@@ -23,6 +23,8 @@ export const Home = () => {
       setUsername(username);
     }
   }, [session]);
+
+  if (!session) return <Loader />;
 
   return (
     <div className="flex w-full h-screen">

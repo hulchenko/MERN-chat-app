@@ -85,9 +85,9 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
   }, [newUserHandler, userDisconnectHandler]);
 
   return (
-    <div>
-      <h1>Private Chats</h1>
-      <div className="p-4 bg-slate-200 rounded flex-grow flex flex-col overflow-auto h-96">
+    <div className="border border-sky-300 rounded-xl p-2 bg-sky-100 divide-y divide-sky-300">
+      <h1 className="text-center text-sky-500">Users</h1>
+      <div className="p-4 flex-grow flex flex-col overflow-auto h-96">
         {!users && <Loader />}
         {users?.length === 0 && <p className="italic text-gray-400">No users online</p>}
         {users?.map((user) => (
@@ -97,12 +97,12 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
               setSelectedUser(user);
               removeNotification(user);
             }}
-            className={`relative p-2 my-2 border border-slate-700 rounded cursor-pointer hover:bg-slate-300 ${
-              selectedUser?.username === user.username ? "bg-slate-700 text-white" : ""
+            className={`relative py-2 px-4 my-1 border border-sky-300 rounded cursor-pointer hover:bg-sky-200 flex ${
+              selectedUser?.username === user.username ? "bg-sky-300 text-white" : ""
             }`}
           >
-            {user.username}
-            {user.connected ? <span className="text-green-600 ml-4">Online</span> : <span className="text-red-400 ml-4">Offline</span>}
+            <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{user.username}</span>
+            {user.connected ? <span className="text-green-600">online</span> : <span className="text-red-400">offline</span>}
             {user.newMessage && (
               <span className="absolute top-0 right-0 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
