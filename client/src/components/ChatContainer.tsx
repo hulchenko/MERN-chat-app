@@ -18,7 +18,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
   }, [selectedUser, conversation]);
 
   return (
-    <div className="border border-blue-500 flex-grow flex flex-col overflow-hidden">
+    <div className="flex-grow flex flex-col overflow-hidden">
       {(selectedUser || selectedRoom) && (
         <>
           <h5 className="py-4 bg-slate-600 text-white text-lg font-bold flex w-full justify-center">{selectedUser?.username || selectedRoom?.name}</h5>

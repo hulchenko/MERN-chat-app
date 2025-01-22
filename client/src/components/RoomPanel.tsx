@@ -4,6 +4,8 @@ import { RoomPanelProps } from "../interface/Props";
 import { Room } from "../interface/Room";
 import { removeSpaces } from "../utils/format";
 import { Loader } from "./Loader";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) => {
   const [roomList, setRoomList] = useState<Room[] | null>(null);
@@ -81,37 +83,41 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
   }, []);
 
   return (
-    <div>
-      <h1>Group Chats</h1>
-      <div className="p-4 bg-slate-200 rounded overflow-auto h-96">
+    <div className="border border-sky-300 rounded-xl p-2 bg-sky-100 divide-y divide-sky-300">
+      <h1 className="text-center text-sky-500">Chat Rooms</h1>
+      <div className="p-4 rounded overflow-auto h-56">
         {!roomList && <Loader />}
         {roomList?.length === 0 && <p className="italic text-gray-400">Nothing here yet</p>}
         {roomList?.map((room, idx) => (
-          <div key={idx} className="flex w-full justify-between">
-            <p
-              className={`p-2 my-2 border border-slate-700 rounded ${selectedRoom?.name === room.name ? "text-white bg-slate-700" : ""} ${
-                userRooms.includes(room.name) ? " cursor-pointer bg-slate-400" : ""
-              }`}
-              onClick={() => clickRoom(room)}
-            >
-              {room.name}
-            </p>
-            {!userRooms.includes(room.name) ? (
-              <button className="border border-slate-700 rounded m-2 p-2" onClick={() => joinRoom(room)}>
-                Join
-              </button>
-            ) : (
-              <button className="border border-slate-700 rounded m-2 p-2" onClick={() => leaveRoom(room)}>
-                Leave
-              </button>
-            )}
-          </div>
+          <p
+            key={idx}
+            className={`relative py-2 px-4 my-1 items-center border border-sky-300 rounded hover:bg-sky-200 flex ${
+              selectedRoom?.name === room.name ? "bg-sky-300 text-white" : ""
+            } ${userRooms.includes(room.name) ? "border border-green-600 cursor-pointer" : "border border-sky-300 cursor-not-allowed"}`}
+            onClick={() => clickRoom(room)}
+          >
+            <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{room.name}</span>
+            <span className="absolute right-2 flex h-4 w-4">
+              {!userRooms.includes(room.name) ? (
+                <FontAwesomeIcon title="join" className="cursor-pointer text-green-600 hover:scale-150" onClick={() => joinRoom(room)} icon={faPlus} />
+              ) : (
+                <FontAwesomeIcon title="leave" className="cursor-pointer  text-red-400 hover:scale-150" onClick={() => leaveRoom(room)} icon={faXmark} />
+              )}
+            </span>
+          </p>
         ))}
       </div>
-      <input type="text" placeholder="Room name..." onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomName(e.target.value)} />
-      <button className="border border-slate-400 p-2" onClick={() => createRoom(roomName)}>
-        Create
-      </button>
+      <div className="w-full flex px-4 py-2">
+        <input
+          className="w-full border border-sky-400 p-2 rounded-md"
+          type="text"
+          placeholder="Room name"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomName(e.target.value)}
+        />
+        <button className="border border-sky-400 rounded-md p-2 mx-1 hover:bg-sky-200" onClick={() => createRoom(roomName)}>
+          Create
+        </button>
+      </div>
     </div>
   );
 };

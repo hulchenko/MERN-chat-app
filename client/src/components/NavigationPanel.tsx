@@ -98,19 +98,19 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   }, [initialDataHandler]);
 
   return (
-    <div className="border border-green-600 flex flex-col w-[400px] p-4 h-screen gap-2">
+    <div className="border border-r-sky-400 flex flex-col w-[400px] p-4 h-screen gap-2">
       <h5 className="mt-5 text-sm">hello,</h5>
       <h3 className="text-3xl font-bold text-sky-500">{username}</h3>
       <p className="mt-2 mb-10 relative flex w-20 items-center">
         status:
         {isOnline ? (
-          <span className="absolute right-0 flex h-4 w-4">
+          <span className="absolute right-0 flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-600 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-green-600"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
           </span>
         ) : (
-          <span className="absolute right-0 flex h-4 w-4">
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-red-400"></span>
+          <span className="absolute right-0 flex h-3 w-3 ">
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-400"></span>
           </span>
         )}
       </p>
@@ -118,8 +118,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
         <UserPanel {...userPanelProps} />
         <RoomPanel {...roomPanelProps} />
       </div>
-      <hr />
-      <button className="border border-red-400 p-2" onClick={signOut}>
+      <button className="border border-red-400 p-2 rounded-md text-red-400 hover:bg-red-200" onClick={signOut}>
         Sign Out
       </button>
     </div>
