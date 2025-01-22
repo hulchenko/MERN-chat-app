@@ -36,8 +36,6 @@ export const SelectedChannelProvider = ({ children }: { children: ReactNode }) =
     [selectedRoom]
   );
 
-  // useEffect(() => console.log("SELECTED USER: ", selectedUser), [selectedUser]);
-
   return <SelectedChannelContext.Provider value={{ selectedUser, selectedRoom, setSelectedUser, setSelectedRoom }}>{children}</SelectedChannelContext.Provider>;
 };
 

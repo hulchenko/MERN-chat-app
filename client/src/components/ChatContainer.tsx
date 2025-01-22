@@ -31,7 +31,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
                 <div
                   ref={messageRef}
                   key={idx}
-                  className={`border border-slate-500 bg-slate-400 my-4 rounded-3xl p-4 max-w-96 break-words ${
+                  className={`border border-slate-500 bg-slate-400 my-4 rounded-3xl p-4 max-w-96 break-words animate-pop ${
                     msg.from === username ? "ml-auto rounded-br-none bg-blue-400" : "rounded-bl-none"
                   }`}
                 >
