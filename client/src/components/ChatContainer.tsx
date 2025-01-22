@@ -22,7 +22,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
       {(selectedUser || selectedRoom) && (
         <>
           <h5 className="py-4 bg-sky-500 text-white text-lg font-bold text-center">{selectedUser?.username || selectedRoom?.name}</h5>
-          <div id="chat-block" className="flex-grow overflow-y-auto px-12 text-lg bg-stone-100">
+          <div className="flex-grow overflow-y-auto px-12 bg-stone-100">
             {messages?.map((msg, idx) =>
               msg.notification ? (
                 <div key={idx} className="text-center italic text-stone-400 py-2">
@@ -32,7 +32,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
                 <div
                   ref={messageRef}
                   key={idx}
-                  className={`my-4 pl-6 pt-2 pb-4 pr-3 max-w-96 break-words animate-pop text-stone-50 ${
+                  className={`my-2 pl-6 pt-2 pb-4 pr-3 max-w-96 break-words animate-pop text-stone-50 text-lg ${
                     msg.from === username ? "ml-auto  bg-sky-400 rounded-t-3xl rounded-bl-3xl" : " bg-gray-400 rounded-b-3xl rounded-tr-3xl"
                   }`}
                 >
