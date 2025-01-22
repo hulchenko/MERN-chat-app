@@ -101,7 +101,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
               {!userRooms.includes(room.name) ? (
                 <FontAwesomeIcon title="join" className="cursor-pointer text-green-600 hover:scale-150 p-2" onClick={() => joinRoom(room)} icon={faPlus} />
               ) : (
-                <FontAwesomeIcon title="leave" className="cursor-pointer  text-red-400 hover:scale-150" onClick={() => leaveRoom(room)} icon={faXmark} />
+                <FontAwesomeIcon title="leave" className="cursor-pointer  text-red-400 hover:scale-150 p-2" onClick={() => leaveRoom(room)} icon={faXmark} />
               )}
             </span>
           </p>
@@ -109,7 +109,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
       </div>
       <div className="w-full flex px-4 py-2">
         <input
-          className="w-full border border-sky-400 p-2 rounded-md focus-visible:outline-sky-500"
+          className="w-full border border-sky-400 bg-stone-50 p-2 rounded-md focus-visible:outline-sky-500"
           type="text"
           placeholder="Room name"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomName(e.target.value)}

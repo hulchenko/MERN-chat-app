@@ -49,7 +49,7 @@ export const Login = () => {
 
   return (
     <div className="w-56 flex flex-col rounded gap-2 m-auto h-3/4 justify-center ">
-      <div className="border border-slate-700 p-4 flex flex-col items-center rounded">
+      <div className="border p-4 flex flex-col items-center rounded">
         <h3 className="text-xl mb-4">Join Chat</h3>
         <form onSubmit={submitHandler} className="flex flex-col w-full gap-2">
           <h3>Username:</h3>

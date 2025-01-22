@@ -42,7 +42,7 @@ export const ChatInput = ({ username }: { username: string }) => {
           value={message}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
         />
-        <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-sky-500 rounded w-40 bg-white hover:bg-sky-200">
+        <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-sky-500 rounded w-40 bg-stone-50 hover:bg-sky-200">
           <FontAwesomeIcon className="text-sky-500 " icon={faPaperPlane} />
         </button>
       </div>
