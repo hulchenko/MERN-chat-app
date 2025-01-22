@@ -128,6 +128,8 @@ const websocketConnect = (server) => {
     socket.on("join_room", async (roomName) => {
       socket.join(roomName);
       console.log(`USER ${socket.username} joined room: ${roomName}`);
+      const roomMessages = await messageStore.getRoomMessages(roomName);
+      socket.emit("joined_room_messages", roomMessages);
       socket.to(roomName).emit("user_joined", { username: socket.username, roomName });
       await roomStore.saveRoom(socket.username, roomName);
     });
