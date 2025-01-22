@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useConversation } from "../context/ConversationProvider";
 import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import socket from "../socket";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
 export const ChatInput = ({ username }: { username: string }) => {
   const [message, setMessage] = useState<string>("");
@@ -34,14 +36,14 @@ export const ChatInput = ({ username }: { username: string }) => {
       <div className="w-full flex gap-4">
         <input
           disabled={!selectedUser && !selectedRoom}
-          className="w-full p-2 rounded"
+          className="w-full p-2 rounded focus-visible:outline-sky-500"
           type="text"
           placeholder="Type a message"
           value={message}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
         />
-        <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-slate-500 rounded w-40">
-          Send
+        <button type="submit" disabled={!selectedUser && !selectedRoom} className="p-2 border border-sky-500 rounded w-40 bg-white hover:bg-sky-200">
+          <FontAwesomeIcon className="text-sky-500 " icon={faPaperPlane} />
         </button>
       </div>
     </form>
