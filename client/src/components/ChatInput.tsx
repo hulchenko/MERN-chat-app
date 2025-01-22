@@ -32,7 +32,7 @@ export const ChatInput = ({ username }: { username: string }) => {
   };
 
   return (
-    <form onSubmit={sendMessage} className="px-96 py-4" hidden={!selectedUser && !selectedRoom}>
+    <form onSubmit={sendMessage} className="2xl:px-96 px-4 py-4" hidden={!selectedUser && !selectedRoom}>
       <div className="w-full flex gap-4">
         <input
           disabled={!selectedUser && !selectedRoom}
