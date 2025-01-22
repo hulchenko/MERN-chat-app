@@ -85,9 +85,9 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
   }, [newUserHandler, userDisconnectHandler]);
 
   return (
-    <div className="border border-sky-300 rounded-xl p-2 bg-sky-100 divide-y divide-sky-300">
+    <div className="border border-sky-300 rounded-xl p-2 bg-sky-100 divide-y divide-sky-300 flex-grow flex flex-col">
       <h1 className="text-center text-sky-500">Users</h1>
-      <div className="p-4 flex-grow flex flex-col overflow-auto h-96">
+      <div className="p-4 rounded overflow-auto flex-grow h-96">
         {!users && <Loader />}
         {users?.length === 0 && <p className="italic text-gray-400">No users online</p>}
         {users?.map((user) => (

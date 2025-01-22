@@ -114,7 +114,7 @@ export const NavigationPanel = ({ username }: { username: string }) => {
           </span>
         )}
       </p>
-      <div className="flex flex-col h-full justify-between">
+      <div className="flex flex-col flex-grow justify-between gap-4">
         <UserPanel {...userPanelProps} />
         <RoomPanel {...roomPanelProps} />
       </div>
