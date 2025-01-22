@@ -45,7 +45,7 @@ export const App = () => {
   }, [session]);
 
   return (
-    <div className="bg-slate-300 h-screen">
+    <div className="bg-slate-300 h-screen font-openSans">
       <Toaster />
       <Outlet />
     </div>

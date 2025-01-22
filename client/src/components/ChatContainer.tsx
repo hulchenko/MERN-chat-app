@@ -1,6 +1,7 @@
 import { useSelectedChannel } from "../context/SelectedChannelProvider";
 import { generateConversationKey, useConversation } from "../context/ConversationProvider";
 import { useEffect, useRef } from "react";
+import { dateFormat } from "../utils/format";
 
 export const ChatContainer = ({ username }: { username: string }) => {
   const { selectedUser, selectedRoom } = useSelectedChannel();
@@ -21,30 +22,29 @@ export const ChatContainer = ({ username }: { username: string }) => {
       {(selectedUser || selectedRoom) && (
         <>
           <h5 className="py-4 bg-slate-600 text-white text-lg font-bold flex w-full justify-center">{selectedUser?.username || selectedRoom?.name}</h5>
-          <div id="chat-block" className="flex-grow overflow-y-auto px-12">
+          <div id="chat-block" className="flex-grow overflow-y-auto px-12 text-lg">
             {messages?.map((msg, idx) =>
               msg.notification ? (
-                <div key={idx} className="text-center italic text-slate-500 py-2">
+                <div key={idx} className="text-center italic text-slate-600 py-2">
                   {msg.content}
                 </div>
               ) : (
                 <div
                   ref={messageRef}
                   key={idx}
-                  className={`border border-slate-500 bg-slate-400 my-4 rounded-3xl p-4 max-w-96 break-words animate-pop ${
-                    msg.from === username ? "ml-auto rounded-br-none bg-blue-400" : "rounded-bl-none"
-                  }`}
+                  className={`my-4 rounded-3xl p-4 max-w-96 break-words animate-pop ${msg.from === username ? "ml-auto  bg-sky-400" : " bg-slate-400 "}`}
                 >
-                  <h5>{msg.from === username ? "You" : msg.from}</h5>
+                  <div className="flex justify-end text-xs italic w-full gap-1">
+                    <h5>{msg.from === username ? "you" : msg.from}</h5>@<p>{dateFormat(msg.timestamp)}</p>
+                  </div>
                   <p>{msg.content}</p>
-                  <p>{msg.timestamp ? new Date(msg.timestamp).toISOString() : null}</p>
                 </div>
               )
             )}
           </div>
         </>
       )}
-      {!selectedUser && !selectedRoom && <p className="w-full flex justify-center mt-96 text-slate-500">Chats will appear here.</p>}
+      {!selectedUser && !selectedRoom && <p className="w-full flex justify-center mt-96 text-slate-500">Chats will appear here</p>}
       {(selectedUser || selectedRoom) && !messages && <p className="w-full flex justify-center mt-96 text-slate-500">Be the first to send a message!</p>}
     </div>
   );
