@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useConversation } from "../context/ConversationProvider";
 import { useSession } from "../context/SessionProvider";
@@ -9,8 +8,7 @@ import { RoomPanel } from "./RoomPanel";
 import { UserPanel } from "./UserPanel";
 import { RoomPanelProps, UserPanelProps } from "../interface/Props";
 
-export const NavigationPanel = ({ username }: { username: string }) => {
-  const [isOnline, setOnline] = useState<boolean>(false);
+export const NavigationPanel = ({ username, isOnline }: { username: string; isOnline: boolean }) => {
   const [users, setUsers] = useState<User[] | null>(null);
   const [userRooms, setUserRooms] = useState<string[]>([]);
 
@@ -80,20 +78,12 @@ export const NavigationPanel = ({ username }: { username: string }) => {
   };
 
   useEffect(() => {
-    socket.on("connect", () => {
-      toast.success("Connected.");
-      setOnline(true);
-    });
-    socket.on("initial_data", (users: User[]) => initialDataHandler(users));
-    socket.on("disconnect", () => {
-      toast.error("Disconnected.");
-      setOnline(false);
+    socket.on("initial_data", (users: User[]) => {
+      initialDataHandler(users);
     });
 
     return () => {
-      socket.off("connect");
       socket.off("initial_data");
-      socket.off("disconnect");
     };
   }, [initialDataHandler]);
 

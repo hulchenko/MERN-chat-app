@@ -98,7 +98,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
               removeNotification(user);
             }}
             className={`relative py-2 px-6 my-1 border border-sky-300 rounded cursor-pointer hover:bg-sky-200 flex items-center  ${
-              selectedUser?.username === user.username ? "bg-sky-300 text-white" : ""
+              selectedUser?.username === user.username ? "bg-sky-300 text-stone-50" : ""
             }`}
           >
             <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{user.username}</span>

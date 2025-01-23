@@ -35,6 +35,7 @@ export const App = () => {
 
     return () => {
       socket.off("connect_error");
+      socket.off("auth_error");
     };
   }, []);
 
