@@ -91,9 +91,9 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
         {roomList?.map((room, idx) => (
           <p
             key={idx}
-            className={`relative flex py-2 px-6 my-1 items-center border border-sky-300 rounded hover:bg-sky-200  ${
+            className={`relative flex py-2 px-6 my-1 items-center border border-sky-300 rounded ${
               selectedRoom?.name === room.name ? "bg-sky-300 text-stone-50" : ""
-            } ${userRooms.includes(room.name) ? "border border-green-600 cursor-pointer" : "border border-sky-300 cursor-not-allowed"}`}
+            } ${userRooms.includes(room.name) ? "border border-green-600 cursor-pointer hover:bg-sky-200" : "border border-sky-300"}`}
             onClick={() => clickRoom(room)}
           >
             <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{room.name}</span>

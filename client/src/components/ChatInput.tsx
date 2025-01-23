@@ -38,7 +38,7 @@ export const ChatInput = ({ username }: { username: string }) => {
           disabled={!selectedUser && !selectedRoom}
           className="w-full p-2 rounded focus-visible:outline-sky-400"
           type="text"
-          placeholder="Type a message"
+          placeholder="Send your message here..."
           value={message}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
         />

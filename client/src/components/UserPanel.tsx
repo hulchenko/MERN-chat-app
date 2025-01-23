@@ -18,7 +18,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
       if (self) return;
 
       setUsers((prev) => {
-        const usersArr = [...prev];
+        const usersArr = [...(prev || [])];
         const userIdx = usersArr.findIndex((u) => u.userID === user.userID);
         if (userIdx !== -1) {
           usersArr[userIdx].connected = true;
@@ -33,7 +33,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
 
   const userDisconnectHandler = useCallback((userID: string) => {
     setUsers((prev) => {
-      const usersArr = [...prev];
+      const usersArr = [...(prev || [])];
       const userIdx = usersArr.findIndex((user) => user.userID === userID);
       if (userIdx !== -1) {
         usersArr[userIdx].connected = false;
@@ -44,7 +44,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
 
   const displayNotification = useCallback((sender: string): void => {
     setUsers((prev) => {
-      const usersArr = [...prev];
+      const usersArr = [...(prev || [])];
       const userIdx = usersArr.findIndex((user) => user.username === sender);
       if (userIdx !== -1) {
         usersArr[userIdx].newMessage = true;
@@ -55,7 +55,7 @@ export const UserPanel = ({ users, setUsers, session, socket }: UserPanelProps) 
 
   const removeNotification = useCallback((targetUser: User): void => {
     setUsers((prev) => {
-      const usersArr = [...prev];
+      const usersArr = [...(prev || [])];
       const userIdx = usersArr.findIndex((user) => user.username === targetUser.username);
       if (userIdx !== -1) {
         usersArr[userIdx].newMessage = false;

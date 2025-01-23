@@ -30,10 +30,9 @@ export const NavigationPanel = ({ username, isOnline }: { username: string; isOn
   };
 
   const restorePrivateConversation = useCallback(
-    (users: User[]) => {
+    (incUsers: User[]) => {
       const pm = true;
-      if (!users || users.length === 0) return;
-      users.forEach((user) => {
+      incUsers?.forEach((user) => {
         user.messages.forEach(({ from, to, content, timestamp }) => {
           addMessage(from, to, content, timestamp, pm);
         });
@@ -53,20 +52,19 @@ export const NavigationPanel = ({ username, isOnline }: { username: string; isOn
   );
 
   const initialDataHandler = useCallback(
-    (users: User[]) => {
-      if (!session?.userID) return;
+    (incUsers: User[]) => {
       // initial users
-      console.log(`initial users: `, users);
+      console.log(`initial users: `, incUsers);
 
-      restorePrivateConversation(users);
+      restorePrivateConversation(incUsers);
 
-      const currUser = users.find((user) => user.userID === session.userID);
+      const currUser = incUsers.find((user) => user.userID === session?.userID);
       if (currUser) {
         setUserRooms(currUser.rooms);
         restoreGroupConversation(currUser);
       }
 
-      const usersExcludeSelf = users.filter((user) => user.userID !== session?.userID).sort((user) => (user.connected ? -1 : 1));
+      const usersExcludeSelf = incUsers.filter((user) => user.userID !== session?.userID).sort((user) => (user.connected ? -1 : 1));
       setUsers(usersExcludeSelf);
     },
     [session]
@@ -78,8 +76,8 @@ export const NavigationPanel = ({ username, isOnline }: { username: string; isOn
   };
 
   useEffect(() => {
-    socket.on("initial_data", (users: User[]) => {
-      initialDataHandler(users);
+    socket.on("initial_data", (incUsers: User[]) => {
+      initialDataHandler(incUsers);
     });
 
     return () => {
