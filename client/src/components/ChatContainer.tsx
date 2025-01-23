@@ -21,7 +21,7 @@ export const ChatContainer = ({ username }: { username: string }) => {
     <div className="flex-grow flex flex-col overflow-hidden">
       {(selectedUser || selectedRoom) && (
         <>
-          <h5 className="py-4 bg-sky-500 text-white text-lg font-bold text-center">{selectedUser?.username || selectedRoom?.name}</h5>
+          <h5 className="py-4 bg-sky-500 text-stone-50 text-lg font-bold text-center">{selectedUser?.username || selectedRoom?.name}</h5>
           <div className="flex-grow overflow-y-auto px-12 bg-stone-100">
             {messages?.map((msg, idx) =>
               msg.notification ? (
@@ -43,11 +43,11 @@ export const ChatContainer = ({ username }: { username: string }) => {
                 </div>
               )
             )}
-            {!messages && <p className="text-center text-stone-400 mt-96">Be the first to send a message</p>}
+            {!messages && <p className="text-center text-stone-400 mt-96">Messages will appear here</p>}
           </div>
         </>
       )}
-      {!selectedUser && !selectedRoom && <p className="text-center mt-96 text-stone-400">Chats will appear here</p>}
+      {!selectedUser && !selectedRoom && <p className="text-center mt-96 text-stone-400">Select user/room to chat!</p>}
     </div>
   );
 };

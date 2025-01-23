@@ -36,7 +36,7 @@ export const ChatInput = ({ username }: { username: string }) => {
       <div className="w-full flex gap-4">
         <input
           disabled={!selectedUser && !selectedRoom}
-          className="w-full p-2 rounded focus-visible:outline-sky-500"
+          className="w-full p-2 rounded focus-visible:outline-sky-400"
           type="text"
           placeholder="Type a message"
           value={message}

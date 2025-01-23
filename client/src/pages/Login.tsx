@@ -51,13 +51,13 @@ export const Login = () => {
 
   return (
     <div className="w-56 flex flex-col rounded gap-2 m-auto pt-96 justify-center ">
-      <div className="border border-sky-300 p-4 flex flex-col items-center rounded">
+      <div className="border border-sky-300 p-4 flex flex-col items-center rounded-xl">
         <FontAwesomeIcon icon={faComments} className="text-sky-500 text-3xl m-1" />
         <h3 className="text-xl mb-4 font-bold text-sky-500">Join Chat</h3>
         <form onSubmit={submitHandler} className="flex flex-col w-full gap-2">
           <h3>Username</h3>
           <input
-            className="p-1 rounded"
+            className="p-1 rounded focus-visible:outline-sky-400"
             type="text"
             placeholder="Your username..."
             autoComplete="on"
@@ -67,7 +67,7 @@ export const Login = () => {
           />
           <h3>Password</h3>
           <input
-            className="p-1 rounded"
+            className="p-1 rounded focus-visible:outline-sky-400"
             type="password"
             placeholder="Your password..."
             autoComplete="on"
@@ -75,7 +75,7 @@ export const Login = () => {
             maxLength={20}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           />
-          <button type="submit" className="border border-sky-300 p-2 mt-2 w-20 rounded m-auto hover:bg-sky-200">
+          <button type="submit" className="border border-sky-300 p-2 mt-2 w-20 rounded-md m-auto hover:bg-sky-200">
             Enter
           </button>
           {authError && <p style={{ color: "red", fontSize: "small" }}>{authError}</p>}

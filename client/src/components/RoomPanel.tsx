@@ -91,13 +91,13 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
         {roomList?.map((room, idx) => (
           <p
             key={idx}
-            className={`relative flex py-2 px-4 my-1 items-center border border-sky-300 rounded hover:bg-sky-200  ${
-              selectedRoom?.name === room.name ? "bg-sky-300 text-white" : ""
+            className={`relative flex py-2 px-6 my-1 items-center border border-sky-300 rounded hover:bg-sky-200  ${
+              selectedRoom?.name === room.name ? "bg-sky-300 text-stone-50" : ""
             } ${userRooms.includes(room.name) ? "border border-green-600 cursor-pointer" : "border border-sky-300 cursor-not-allowed"}`}
             onClick={() => clickRoom(room)}
           >
             <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{room.name}</span>
-            <span className="absolute right-2 flex">
+            <span className="absolute right-4 flex">
               {!userRooms.includes(room.name) ? (
                 <FontAwesomeIcon title="join" className="cursor-pointer text-green-600 hover:scale-150 p-2" onClick={() => joinRoom(room)} icon={faPlus} />
               ) : (
@@ -109,7 +109,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
       </div>
       <div className="w-full flex px-4 py-2">
         <input
-          className="w-full border border-sky-400 bg-stone-50 p-2 rounded-md focus-visible:outline-sky-500"
+          className="w-full border border-sky-400 bg-stone-50 p-2 rounded-md focus-visible:outline-sky-400"
           type="text"
           placeholder="Room name"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomName(e.target.value)}
