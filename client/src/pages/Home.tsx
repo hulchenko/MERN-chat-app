@@ -8,9 +8,11 @@ import { useSession } from "../context/SessionProvider";
 import socket from "../socket";
 import { Loader } from "../components/Loader";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export const Home = () => {
-  const { session } = useSession();
+  const navigate = useNavigate();
+  const { session, clearSession } = useSession();
   const [isOnline, setOnline] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
 
@@ -35,9 +37,15 @@ export const Home = () => {
       toast.error("Disconnected.");
       setOnline(false);
     });
+    socket.on("force_disconnect", () => {
+      // sign out fires in one of the clients, shared across all
+      clearSession();
+      navigate("/login");
+    });
     return () => {
       socket.off("connect");
       socket.off("disconnect");
+      socket.off("force_disconnect");
     };
   }, [socket, session]);
 
