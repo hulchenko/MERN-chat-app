@@ -1,10 +1,10 @@
 import Redis from "ioredis";
 import { Server } from "socket.io";
-import { verifyJWT } from "../auth/auth.js";
-import MessageStore from "../messageStore.js";
-import RoomStore from "../roomStore.js";
-import SessionStore from "../sessionStore.js";
-import { getAllDBUsers } from "./../controllers/userController.js";
+import { verifyJWT } from "./auth/auth.js";
+import MessageStore from "./stores/messageStore.js";
+import RoomStore from "./stores/roomStore.js";
+import SessionStore from "./stores/sessionStore.js";
+import { getAllDBUsers } from "./controllers/userController.js";
 
 const REDIS_URI = process.env.REDIS_URI;
 
@@ -16,24 +16,8 @@ const websocketConnect = (server) => {
   const roomStore = new RoomStore(redis);
 
   io.use(async (socket, next) => {
+    // client login -> websocket connect -> send token
     try {
-      const sessionID = socket.handshake.auth.sessionID;
-      if (sessionID) {
-        // check cached session
-        const session = await sessionStore.findSession(sessionID);
-        if (session) {
-          const { username, userID } = session;
-
-          socket.username = username;
-          socket.sessionID = sessionID;
-          socket.userID = userID;
-
-          next();
-        } else {
-          // clean up stale sessions
-          await sessionStore.removeSession(sessionID);
-        }
-      }
       const token = socket.handshake.auth.token;
       if (!token) {
         return next(new Error("Authentication token is missing."));
@@ -54,7 +38,7 @@ const websocketConnect = (server) => {
   });
 
   io.on("connection", async (socket) => {
-    console.log("Websocket connected. ID: ", socket.username);
+    console.log("Websocket connected: ", socket.username);
 
     try {
       await sessionStore.saveSession(socket.sessionID, {
@@ -127,7 +111,7 @@ const websocketConnect = (server) => {
     // Group messaging
     socket.on("join_room", async (roomName) => {
       socket.join(roomName);
-      console.log(`USER ${socket.username} joined room: ${roomName}`);
+      console.log(`User ${socket.username} joined room: ${roomName}`);
       const roomMessages = await messageStore.getRoomMessages(roomName);
       socket.emit("joined_room_messages", roomMessages);
       socket.to(roomName).emit("user_joined", { username: socket.username, roomName });
@@ -143,7 +127,7 @@ const websocketConnect = (server) => {
 
     socket.on("leave_room", async (roomName) => {
       socket.leave(roomName);
-      console.log(`USER ${socket.username} left room: ${roomName}`);
+      console.log(`User ${socket.username} left room: ${roomName}`);
       socket.to(roomName).emit("user_left", { username: socket.username, roomName });
       await roomStore.removeRoom(socket.username, roomName);
     });
@@ -162,9 +146,7 @@ const websocketConnect = (server) => {
       const isDisconnected = userActiveSockets.length === 0;
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
-        socket.disconnect();
         socket.broadcast.emit("user_disconnect", socket.userID);
-        await sessionStore.removeSession(socket.sessionID);
       }
     });
 

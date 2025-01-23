@@ -3,10 +3,10 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "node:http";
 import mongoConnect from "./config/db.js";
-import websocketConnect from "./config/websocket.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import websocketConnect from "./websocket.js";
 
 const PORT = 5000;
 const app = express();
