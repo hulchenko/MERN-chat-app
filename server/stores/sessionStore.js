@@ -29,7 +29,6 @@ class SessionStore {
         await this.redis.del(sessionKey);
       }
     }
-    console.log("Sessions after removed: ", sessions.length);
   }
 
   async isConnected(username) {

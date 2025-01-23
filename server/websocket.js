@@ -15,18 +15,15 @@ const websocketConnect = (server) => {
   const messageStore = new MessageStore(redis);
   const roomStore = new RoomStore(redis);
 
-  io.use(async (socket, next) => {
+  const authenticateUser = async (socket, next) => {
     // client login -> websocket connect -> send token
     try {
       const token = socket.handshake.auth.token;
-      if (!token) {
-        return next(new Error("Authentication token is missing."));
-      }
-      const payload = verifyJWT(token); // {username, id}
-      const { id, username } = payload;
-      if (!id || !username) {
-        return next(new Error("User is not authenticated.")); // this is caught by "connect_error" in client-side
-      }
+      if (!token) next(new Error("Authentication token is missing."));
+
+      const { id, username } = verifyJWT(token); // {username, id}
+      if (!id || !username) next(new Error("User is not authenticated.")); // this is caught by "connect_error" in client-side
+
       socket.username = username;
       socket.userID = id;
       socket.sessionID = token;
@@ -35,23 +32,36 @@ const websocketConnect = (server) => {
     } catch (error) {
       return next(new Error(error?.message || "Authentication error."));
     }
-  });
+  };
+  const disconnectUser = async (socket) => {
+    if (socket.isSignedOut) return;
+    const userActiveSockets = await io.in(socket.userID).fetchSockets(); // same user, different browsers/devices/tabs
+    const isDisconnected = userActiveSockets.length === 0;
+    if (isDisconnected) {
+      console.log("User disconnected: ", socket.username);
+      // preserve user in the session store
+      await sessionStore.saveSession(socket.sessionID, {
+        userID: socket.userID,
+        username: socket.username,
+        connected: false,
+      });
+      socket.broadcast.emit("user_disconnect", socket.userID);
+    }
+  };
+
+  io.use(authenticateUser); // middleware fires before socket connection
 
   io.on("connection", async (socket) => {
     console.log("Websocket connected: ", socket.username);
 
-    try {
-      await sessionStore.saveSession(socket.sessionID, {
-        userID: socket.userID,
-        username: socket.username,
-        connected: true,
-      });
-      socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
-      socket.join(socket.userID); // overwrite default socket.join(socket.id)
-    } catch (error) {
-      console.error("Failed to initialize session: ", error);
-      socket.emit("auth_error", { message: "Failed to establish session." });
-    }
+    // Init session
+    await sessionStore.saveSession(socket.sessionID, {
+      userID: socket.userID,
+      username: socket.username,
+      connected: true,
+    });
+    socket.emit("session", { userID: socket.userID, username: socket.username, sessionID: socket.sessionID }); // send session data to the client
+    socket.join(socket.userID); // overwrite default socket.join(socket.id)
 
     socket.on("client_ready", async () => {
       try {
@@ -59,8 +69,6 @@ const websocketConnect = (server) => {
         const dbUsers = await getAllDBUsers();
         const data = await Promise.all(
           dbUsers.map(async (user) => {
-            const isConnected = await sessionStore.isConnected(user.username);
-            const userMessages = await messageStore.getPrivateMessages(user.username);
             const userRooms = await roomStore.getUserRooms(user.username);
             const roomMessages = (
               await Promise.all(
@@ -73,10 +81,10 @@ const websocketConnect = (server) => {
             return {
               userID: user.id,
               username: user.username,
-              messages: userMessages,
+              messages: await messageStore.getPrivateMessages(user.username),
               rooms: userRooms,
               roomMessages,
-              connected: isConnected,
+              connected: await sessionStore.isConnected(user.username),
             };
           })
         );
@@ -142,22 +150,7 @@ const websocketConnect = (server) => {
       io.to(socket.userID).emit("force_disconnect"); // disconnect multiple client tabs
     });
 
-    socket.on("disconnect", async () => {
-      if (socket.isSignedOut) return;
-
-      const userActiveSockets = await io.in(socket.userID).fetchSockets(); // same user, different browsers/devices/tabs
-      const isDisconnected = userActiveSockets.length === 0;
-      if (isDisconnected) {
-        console.log("User disconnected: ", socket.username);
-        // preserve user in the session store
-        await sessionStore.saveSession(socket.sessionID, {
-          userID: socket.userID,
-          username: socket.username,
-          connected: false,
-        });
-        socket.broadcast.emit("user_disconnect", socket.userID);
-      }
-    });
+    socket.on("disconnect", () => disconnectUser(socket));
 
     socket.onAny((event, ...args) => {
       // listen to all events
