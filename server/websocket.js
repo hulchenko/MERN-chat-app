@@ -134,18 +134,26 @@ const websocketConnect = (server) => {
 
     socket.on("sign_out", async () => {
       // remove user in the session store
-      socket.disconnect();
       console.log("User signed out: ", socket.username);
-      socket.broadcast.emit("user_disconnect", socket.userID);
+      socket.isSignedOut = true;
       await sessionStore.removeSession(socket.sessionID);
+      socket.broadcast.emit("user_disconnect", socket.userID);
+      socket.disconnect();
     });
 
     socket.on("disconnect", async () => {
       // preserve user in the session store
+      if (socket.isSignedOut) return;
+
       const userActiveSockets = await io.in(socket.userID).fetchSockets(); // same user, different browsers/devices/tabs
       const isDisconnected = userActiveSockets.length === 0;
       if (isDisconnected) {
         console.log("User disconnected: ", socket.username);
+        await sessionStore.saveSession(socket.sessionID, {
+          userID: socket.userID,
+          username: socket.username,
+          connected: false,
+        });
         socket.broadcast.emit("user_disconnect", socket.userID);
       }
     });
