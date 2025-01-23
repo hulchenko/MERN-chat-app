@@ -22,6 +22,8 @@ class SessionStore {
   async removeSession(id) {
     const key = `session:${id}`;
     await this.redis.del(key);
+    const sessions = await this.redis.keys("session:*");
+    console.log("Sessions after removed: ", sessions.length);
   }
 
   async isConnected(username) {
