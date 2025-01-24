@@ -59,7 +59,7 @@ export const Login = () => {
     <div className="w-56 flex flex-col rounded gap-2 m-auto pt-96 justify-center ">
       <div className="border border-sky-300 p-4 flex flex-col items-center rounded-xl">
         <FontAwesomeIcon icon={faComments} className="text-sky-500 text-3xl m-1" />
-        <h3 className="text-xl mb-4 font-bold text-sky-500">Join Chat</h3>
+        <h3 className="text-xl mb-4 font-bold text-sky-500">Join ChatApp</h3>
         {isLoading ? (
           <Loader />
         ) : (
