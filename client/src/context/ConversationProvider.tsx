@@ -65,8 +65,6 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  useEffect(() => console.log("Conversation: ", conversation), [conversation]);
-
   useEffect(() => {
     socket.on("private_message", (message: Message) => {
       const { from, to, content, timestamp } = message;

@@ -21,6 +21,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
   };
 
   const leaveRoom = (room: Room): void => {
+    setSelectedRoom(null);
     socket.emit("leave_room", room.name);
     const roomIdx = userRooms.findIndex((roomName) => roomName === room.name);
     if (roomIdx !== -1) {
@@ -30,7 +31,6 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
         return originalArr;
       });
     }
-    setSelectedRoom(null);
   };
 
   const clickRoom = (room: Room): void => {
@@ -94,14 +94,30 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
             className={`relative flex py-2 px-6 my-1 items-center border border-sky-300 rounded ${
               selectedRoom?.name === room.name ? "bg-sky-300 text-stone-50" : ""
             } ${userRooms.includes(room.name) ? "border border-green-600 cursor-pointer hover:bg-sky-200" : "border border-sky-300"}`}
-            onClick={() => clickRoom(room)}
+            onClick={(e) => {
+              e.stopPropagation(), clickRoom(room);
+            }}
           >
             <span className="w-full text-wrap overflow-ellipsis overflow-hidden">{room.name}</span>
             <span className="absolute right-4 flex">
               {!userRooms.includes(room.name) ? (
-                <FontAwesomeIcon title="join" className="cursor-pointer text-green-600 hover:scale-150 p-2" onClick={() => joinRoom(room)} icon={faPlus} />
+                <FontAwesomeIcon
+                  title="join"
+                  className="cursor-pointer text-green-600 hover:scale-150 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation(), joinRoom(room);
+                  }}
+                  icon={faPlus}
+                />
               ) : (
-                <FontAwesomeIcon title="leave" className="cursor-pointer  text-red-400 hover:scale-150 p-2" onClick={() => leaveRoom(room)} icon={faXmark} />
+                <FontAwesomeIcon
+                  title="leave"
+                  className="cursor-pointer  text-red-400 hover:scale-150 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation(), leaveRoom(room);
+                  }}
+                  icon={faXmark}
+                />
               )}
             </span>
           </p>
