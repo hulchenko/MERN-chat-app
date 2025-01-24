@@ -6,6 +6,7 @@ import { removeSpaces } from "../utils/format";
 import { Loader } from "./Loader";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { baseURL } from "../utils/environment";
 
 export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) => {
   const [roomList, setRoomList] = useState<Room[] | null>(null);
@@ -44,7 +45,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
       const roomName = {
         name: removeSpaces(name),
       };
-      const response = await fetch("/api/room", {
+      const response = await fetch(`${baseURL}/room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +67,7 @@ export const RoomPanel = ({ userRooms, setUserRooms, socket }: RoomPanelProps) =
   useEffect(() => {
     const getRooms = async (): Promise<void> => {
       try {
-        const response = await fetch("/api/room");
+        const response = await fetch(`${baseURL}/room`);
         if (!response.ok) {
           const error = await response.json();
           throw error;

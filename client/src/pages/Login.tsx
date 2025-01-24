@@ -5,20 +5,24 @@ import { AuthResponse } from "../interface/Response";
 import { removeSpaces } from "../utils/format";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments } from "@fortawesome/free-solid-svg-icons";
+import { baseURL } from "../utils/environment";
+import { Loader } from "../components/Loader";
 
 export const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const authenticate = async (): Promise<AuthResponse> => {
+    setIsLoading(true);
     try {
       const credentials = {
         username: removeSpaces(username),
         password,
       };
-      const response = await fetch("/api/user/login", {
+      const response = await fetch(`${baseURL}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,6 +36,7 @@ export const Login = () => {
       const data = await response.json();
       return data;
     } catch (error: Response | any) {
+      setIsLoading(false);
       console.error(error.message);
       return error;
     }
@@ -40,6 +45,7 @@ export const Login = () => {
   const submitHandler = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     const { error, message, token } = await authenticate();
+    setIsLoading(false);
     if (error) {
       return setAuthError(message);
     }
@@ -54,32 +60,36 @@ export const Login = () => {
       <div className="border border-sky-300 p-4 flex flex-col items-center rounded-xl">
         <FontAwesomeIcon icon={faComments} className="text-sky-500 text-3xl m-1" />
         <h3 className="text-xl mb-4 font-bold text-sky-500">Join Chat</h3>
-        <form onSubmit={submitHandler} className="flex flex-col w-full gap-2">
-          <h3>Username</h3>
-          <input
-            className="p-1 rounded focus-visible:outline-sky-400"
-            type="text"
-            placeholder="Your username..."
-            autoComplete="on"
-            minLength={4}
-            maxLength={20}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
-          />
-          <h3>Password</h3>
-          <input
-            className="p-1 rounded focus-visible:outline-sky-400"
-            type="password"
-            placeholder="Your password..."
-            autoComplete="on"
-            minLength={4}
-            maxLength={20}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-          />
-          <button type="submit" className="border border-sky-300 p-2 mt-2 w-20 rounded-md m-auto hover:bg-sky-200">
-            Enter
-          </button>
-          {authError && <p style={{ color: "red", fontSize: "small" }}>{authError}</p>}
-        </form>
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <form onSubmit={submitHandler} className="flex flex-col w-full gap-2">
+            <h3>Username</h3>
+            <input
+              className="p-1 rounded focus-visible:outline-sky-400"
+              type="text"
+              placeholder="Your username..."
+              autoComplete="on"
+              minLength={4}
+              maxLength={20}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+            />
+            <h3>Password</h3>
+            <input
+              className="p-1 rounded focus-visible:outline-sky-400"
+              type="password"
+              placeholder="Your password..."
+              autoComplete="on"
+              minLength={4}
+              maxLength={20}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            />
+            <button type="submit" className="border border-sky-300 p-2 mt-2 w-20 rounded-md m-auto hover:bg-sky-200">
+              Enter
+            </button>
+            {authError && <p style={{ color: "red", fontSize: "small" }}>{authError}</p>}
+          </form>
+        )}
       </div>
     </div>
   );
