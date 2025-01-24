@@ -49,6 +49,68 @@ const websocketConnect = (server) => {
     }
   };
 
+  const fetchUsers = async (socket) => {
+    console.log("fetchUsers");
+    try {
+      const dbUsers = await getAllDBUsers();
+
+      const userData = [];
+
+      for (const user of dbUsers) {
+        const data = await aggregateUserData(user, socket);
+        if (data) {
+          userData.push(data);
+        }
+      }
+      console.log("past fetch users", userData);
+
+      return userData;
+    } catch (error) {
+      console.error("Error fetching users: ", error.message || error);
+      throw new Error("Error fetching users.");
+    }
+  };
+
+  const aggregateUserData = async (user, socket) => {
+    console.log("aggregateUserData");
+    try {
+      const userRooms = await roomStore.getUserRooms(user.username);
+      const roomMessages = [];
+      for (const roomName of userRooms) {
+        const messages = await fetchRoomMessages(roomName, socket);
+        roomMessages.push(...messages);
+      }
+      const [privateMessages, isConnected] = await Promise.all([
+        await messageStore.getPrivateMessages(user.username),
+        await sessionStore.isConnected(user.username),
+      ]);
+      console.log("privateMessages, isConnected");
+
+      return {
+        userID: user.id,
+        username: user.username,
+        messages: privateMessages,
+        rooms: userRooms,
+        roomMessages,
+        connected: isConnected,
+      };
+    } catch (error) {
+      console.error(`Failed compiling data for ${user.username}`, error.message || error);
+      return null;
+    }
+  };
+
+  const fetchRoomMessages = async (roomName, socket) => {
+    console.log("fetchRoomMessages");
+    try {
+      socket.join(roomName); // reconnect on reload
+      const messages = await messageStore.getRoomMessages(roomName);
+      return messages;
+    } catch (error) {
+      console.error(`Failed to fetch messages from room:${roomName}.`, error);
+    }
+  };
+
   io.use(authenticateUser); // middleware fires before socket connection
 
   io.on("connection", async (socket) => {
@@ -66,33 +128,10 @@ const websocketConnect = (server) => {
     socket.on("client_ready", async () => {
       try {
         // Get session users
-        const dbUsers = await getAllDBUsers();
-        const data = await Promise.all(
-          dbUsers.map(async (user) => {
-            const userRooms = await roomStore.getUserRooms(user.username);
-            const roomMessages = (
-              await Promise.all(
-                userRooms.map((roomName) => {
-                  socket.join(roomName); // reconnect on reload
-                  return messageStore.getRoomMessages(roomName);
-                })
-              )
-            ).flat();
-            return {
-              userID: user.id,
-              username: user.username,
-              messages: await messageStore.getPrivateMessages(user.username),
-              rooms: userRooms,
-              roomMessages,
-              connected: await sessionStore.isConnected(user.username),
-            };
-          })
-        );
-
-        console.log("User count: ", dbUsers.length);
+        const data = await fetchUsers(socket);
         socket.emit("initial_data", data);
       } catch (error) {
-        console.error("Error fetching users", error);
+        console.error("Client ready error", error);
         socket.emit("initial_data", []);
       }
     });
