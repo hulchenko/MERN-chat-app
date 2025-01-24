@@ -24,7 +24,7 @@ ChatApp is a modern, real-time chat application built for seamless communication
 
 ### Backend
 
-- **Node.js & Express**
+- **Express**
 - **MongoDB**
 - **Socket.IO**
 - **Redis**
@@ -32,6 +32,6 @@ ChatApp is a modern, real-time chat application built for seamless communication
 
 ### Live Demo
 
-Access the live demo here: [ChatApp Live Demo](https://mern-chat-app-74gb.onrender.com)
+Access the live demo here: [ChatApp Live Demo](https://mern-chat-app-eight-xi.vercel.app/)
 
 ChatApp combines performance, functionality, and design to deliver a comprehensive real-time communication experience. Join the conversation today!
